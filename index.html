@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plant Explorer 3D | ใบงานอาณาจักรพืช ม.6</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&family=Prompt:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+--ink:#10302b;
+--ink-soft:#4b6760;
+--line:rgba(16,48,43,.14);
+--accent:#f06aa4;
+--accent2:#e0407f;
+--accent-deep:#b3265f;
+--accent-ink:#4d0c27;
+--font-body:'Noto Sans Thai','Sarabun',Tahoma,system-ui,sans-serif;
+--font-head:'Prompt','Noto Sans Thai',Tahoma,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font-body);color:var(--ink);background:#e4f3ec;line-height:1.65;overflow:hidden;-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+.aurora{position:fixed;inset:0;z-index:0;background:
+radial-gradient(60vw 50vh at 8% 6%,rgba(120,214,172,.75),transparent 70%),
+radial-gradient(55vw 55vh at 96% 12%,rgba(150,190,240,.6),transparent 70%),
+radial-gradient(60vw 60vh at 70% 100%,rgba(244,184,214,.55),transparent 70%),
+radial-gradient(50vw 50vh at 0% 100%,rgba(255,226,160,.5),transparent 70%),#e4f3ec}
+.app{position:relative;z-index:1;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:14px 16px 16px;gap:14px;transition:--accent .4s}
+.glass{background:rgba(255,255,255,.58);backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5);border:1px solid rgba(255,255,255,.75);box-shadow:0 18px 50px rgba(16,60,52,.14),inset 0 1px 0 rgba(255,255,255,.8)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 18px;border-radius:22px;flex:none}
+.brand{display:flex;align-items:center;gap:13px;min-width:0}
+.brand-mark{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 20px rgba(16,60,52,.25);transition:background .5s;flex:none}
+.brand-mark svg{width:24px;height:24px}
+.brand h1{margin:0;font:700 clamp(18px,2.2vw,23px)/1.15 var(--font-head);letter-spacing:-.01em}
+.brand p{margin:2px 0 0;font-size:13px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.badge{padding:6px 13px;border-radius:999px;font-size:13px;font-weight:600;background:rgba(255,255,255,.7);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.layout{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.16fr) minmax(350px,.84fr);gap:14px}
+.stage{position:relative;border-radius:28px;overflow:hidden;background:radial-gradient(120% 90% at 50% 18%,#1f6054 0%,#10362f 46%,#061817 100%);border:1px solid rgba(255,255,255,.22);box-shadow:0 26px 70px rgba(6,30,26,.38);isolation:isolate;min-height:0}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(70% 55% at 50% 110%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 70%);opacity:.9;z-index:0;transition:background .6s}
+#canvasHost{position:absolute;inset:0;z-index:1}
+#canvasHost canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none;outline:none}
+#canvasHost canvas:active{cursor:grabbing}
+#hotspots{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+.stage-top{position:absolute;z-index:5;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;pointer-events:none}
+.chips,.tools{display:flex;gap:8px;pointer-events:auto}
+.chips{overflow-x:auto;scrollbar-width:none;padding:2px;margin:-2px;max-width:100%}
+.chips::-webkit-scrollbar{display:none}
+.chip{display:flex;align-items:center;gap:8px;padding:8px 15px 8px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.1);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#e9fff4;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap;transition:background .25s,color .25s,transform .25s,border-color .25s}
+.chip small{display:block;font-weight:400;font-size:11.5px;opacity:.75;line-height:1.1}
+.chip .em{font-size:18px;line-height:1}
+.chip:hover{background:rgba(255,255,255,.2);transform:translateY(-1px)}
+.chip[aria-pressed="true"]{background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);border-color:transparent;box-shadow:0 10px 26px rgba(0,0,0,.28)}
+.chip[aria-pressed="true"] small{opacity:.8}
+.tool{width:42px;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.1);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);color:#e9fff4;font-size:18px;cursor:pointer;display:grid;place-items:center;transition:background .25s,transform .25s}
+.tool:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
+.tool[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#10302b}
+.stage-title{position:absolute;z-index:2;left:26px;top:90px;pointer-events:none;color:#fff;max-width:60%}
+.stage-title h2{margin:0;font:700 clamp(30px,4.6vw,58px)/1 var(--font-head);letter-spacing:-.025em;text-shadow:0 6px 30px rgba(0,0,0,.35)}
+.stage-title p{margin:8px 0 0;font-size:clamp(14px,1.5vw,18px);font-weight:600;color:var(--accent);text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.stage-title.swap{animation:titleIn .6s cubic-bezier(.2,.8,.2,1)}
+@keyframes titleIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.stage-hint{position:absolute;z-index:4;right:14px;bottom:14px;display:flex;flex-direction:column;gap:6px;align-items:flex-end;pointer-events:none}
+.stage-hint span{padding:6px 12px;border-radius:999px;background:rgba(6,24,22,.55);border:1px solid rgba(255,255,255,.14);color:#d9f5e8;font-size:12.5px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.hs{position:absolute;left:0;top:0;width:0;height:0;border:0;padding:0;background:none;cursor:pointer;z-index:3;pointer-events:auto;will-change:transform;transition:opacity .3s}
+.hs-core{position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;background:#fff;color:#10302b;font:700 13px/30px var(--font-head);text-align:center;box-shadow:0 0 0 4px rgba(255,255,255,.28),0 8px 20px rgba(0,0,0,.38);transition:transform .25s,background .25s,color .25s}
+.hs-pulse{position:absolute;left:-15px;top:-15px;width:30px;height:30px;border-radius:50%;border:2px solid var(--accent);animation:pulse 2.2s ease-out infinite;pointer-events:none}
+@keyframes pulse{0%{transform:scale(.9);opacity:.95}100%{transform:scale(2.4);opacity:0}}
+.hs-tag{position:absolute;left:24px;top:-15px;height:30px;line-height:28px;padding:0 13px;white-space:nowrap;border-radius:999px;background:rgba(6,24,22,.82);color:#effff7;font-size:13px;font-weight:500;border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transform:translateX(-6px);transition:opacity .2s,transform .2s;pointer-events:none}
+.hs.flip .hs-tag{left:auto;right:24px;transform:translateX(6px)}
+.hs:hover .hs-core,.hs:focus-visible .hs-core{transform:scale(1.14)}
+.hs:hover .hs-tag,.hs:focus-visible .hs-tag,.hs.active .hs-tag,.stage.labels .hs-tag{opacity:1;transform:none}
+.hs.active .hs-core{background:var(--accent);color:var(--accent-ink)}
+.hs.back{opacity:.28}
+.hs.active.back{opacity:1}
+.hs:focus-visible{outline:none}
+.hs:focus-visible .hs-core{outline:3px solid #fff;outline-offset:3px}
+.hotcard{position:absolute;z-index:6;left:16px;bottom:16px;width:min(390px,calc(100% - 32px));max-height:calc(100% - 150px);overflow:auto;padding:18px 18px 12px;border-radius:24px;background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(232,248,239,.9));backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);color:var(--ink);box-shadow:0 28px 70px rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.9);opacity:0;transform:translateY(22px) scale(.95);pointer-events:none;transition:opacity .35s ease,transform .45s cubic-bezier(.2,.9,.3,1.25)}
+.hotcard.show{opacity:1;transform:none;pointer-events:auto}
+.hc-body{animation:cardSwap .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes cardSwap{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+.hc-tag{display:inline-block;padding:3px 12px;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);font-size:12.5px;font-weight:700}
+.hotcard h3{margin:10px 28px 6px 0;font:600 19px/1.3 var(--font-head);color:var(--ink)}
+.hotcard p{margin:0;font-size:14.5px;color:#27443e}
+.hc-fact{display:flex;gap:10px;margin-top:12px;padding:10px 12px;border-radius:14px;background:rgba(16,48,43,.06);font-size:13.5px}
+.hc-fact p{font-size:13.5px;color:var(--ink-soft)}
+.hc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;color:var(--ink-soft);font-size:13px;font-weight:600}
+.hc-foot button,.hc-close{width:36px;height:36px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.85);font-size:20px;line-height:1;cursor:pointer;color:var(--ink);transition:background .2s,transform .2s}
+.hc-foot button:hover,.hc-close:hover{background:#fff;transform:translateY(-1px)}
+.hc-close{position:absolute;top:12px;right:12px;width:32px;height:32px;font-size:20px}
+.loader,.fallback{position:absolute;inset:0;z-index:8;display:grid;place-items:center;text-align:center;color:#d9f5e8;background:radial-gradient(120% 90% at 50% 18%,#1f6054 0%,#10362f 46%,#061817 100%);transition:opacity .6s}
+.loader.done{opacity:0;pointer-events:none}
+.spinner{width:44px;height:44px;border-radius:50%;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:spin 1s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fallback{padding:30px;font-size:15px}
+.fallback[hidden],.loader[hidden]{display:none}
+.panel{display:flex;flex-direction:column;border-radius:28px;overflow:hidden;min-height:0}
+.tabs{flex:none;display:flex;gap:6px;padding:8px;margin:12px 14px 0;border-radius:18px;background:rgba(16,48,43,.07)}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border:0;border-radius:13px;background:transparent;color:var(--ink-soft);font-size:15px;font-weight:600;cursor:pointer;transition:background .25s,color .25s,box-shadow .25s}
+.tab[aria-selected="true"]{background:#fff;color:var(--ink);box-shadow:0 6px 18px rgba(16,60,52,.14)}
+.tab-badge{padding:1px 9px;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700}
+.pane{flex:1;min-height:0;overflow-y:auto;padding:16px 20px 26px;scrollbar-width:thin;scrollbar-color:rgba(16,48,43,.25) transparent}
+.pane[hidden]{display:none}
+.dv-view.swap{animation:paneIn .5s cubic-bezier(.2,.8,.2,1)}
+@keyframes paneIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.dv-hero{display:flex;align-items:center;gap:14px}
+.dv-badge{width:62px;height:62px;border-radius:20px;display:grid;place-items:center;font-size:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 26px rgba(16,60,52,.22);flex:none}
+.dv-key{margin:0;font:700 clamp(22px,2.4vw,28px)/1.15 var(--font-head);letter-spacing:-.01em}
+.dv-th{margin:2px 0 0;color:var(--accent-deep);font-weight:700}
+.dv-tag{margin:14px 0 6px;font:600 17px/1.45 var(--font-head)}
+.dv-sum{margin:0 0 14px;color:#2b4a43;font-size:15px}
+.traits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:6px}
+.trait{padding:11px 13px;border-radius:16px;background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.95)}
+.trait-k{display:block;font-size:12.5px;color:var(--ink-soft)}
+.trait-v{display:flex;align-items:center;gap:7px;font-weight:700;font-size:15px}
+.trait-v i{font-style:normal;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:12px;flex:none}
+.trait.yes i{background:var(--accent);color:var(--accent-ink)}
+.trait.no i{background:rgba(16,48,43,.1);color:var(--ink-soft)}
+.trait.neu i{background:rgba(16,48,43,.85);color:#fff}
+.blk{margin-top:20px}
+.blk h3{margin:0 0 10px;font:600 17px/1.3 var(--font-head)}
+.spot-list{display:grid;gap:8px}
+.spot-item{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.95);background:rgba(255,255,255,.7);cursor:pointer;text-align:left;color:var(--ink);transition:transform .25s,background .25s,box-shadow .25s}
+.spot-item:hover{transform:translateX(3px);background:#fff;box-shadow:0 10px 24px rgba(16,60,52,.12)}
+.spot-item.active{background:#fff;box-shadow:inset 0 0 0 2px var(--accent)}
+.spot-item .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--accent-ink);font:700 13px var(--font-head);flex:none}
+.spot-item b{display:block;font-size:14.5px;font-weight:600;line-height:1.35}
+.spot-item small{color:var(--ink-soft);font-size:12.5px}
+.ex-list{display:flex;flex-wrap:wrap;gap:8px}
+.ex{padding:5px 13px;border-radius:999px;font-size:13.5px;background:rgba(255,255,255,.75);border:1px solid var(--line)}
+.btn{border:0;border-radius:12px;padding:11px 18px;font:inherit;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#1f7a62,#145a49);color:#fff;box-shadow:0 10px 22px rgba(20,90,73,.28);transition:transform .2s,box-shadow .2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 14px 28px rgba(20,90,73,.34)}
+.btn.secondary{background:rgba(255,255,255,.85);color:#145a49;border:1px solid var(--line);box-shadow:none}
+.btn.danger{background:#fff0ed;color:#9a3d2d;border:1px solid #f0c9bf;box-shadow:none}
+.btn.wide{width:100%;margin-top:18px}
+.tbl-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.6)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{background:rgba(16,48,43,.06);font-weight:600;white-space:nowrap}
+.cmp tbody tr{cursor:pointer;transition:background .2s}
+.cmp tbody tr:hover{background:rgba(255,255,255,.8)}
+.cmp tbody tr.on{background:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.cmp td:first-child{font-weight:700;white-space:nowrap}
+.keybox{padding:16px;border-radius:20px;background:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.95)}
+.key-step{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+.key-q{margin:4px 0 4px;font:600 16.5px/1.45 var(--font-head)}
+.key-help{margin:0 0 12px;font-size:13.5px;color:var(--ink-soft)}
+.key-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.key-opt{padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;font-size:14px;color:var(--ink);transition:transform .2s,box-shadow .2s,border-color .2s}
+.key-opt:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(16,60,52,.14);border-color:var(--accent)}
+.key-nav{margin-top:12px;display:flex;gap:8px}
+.key-link{border:0;background:none;color:var(--accent-deep);font-weight:700;cursor:pointer;font-size:13.5px;padding:4px 0}
+.key-res{text-align:center;animation:paneIn .5s cubic-bezier(.2,.8,.2,1)}
+.key-res .big{font-size:38px;line-height:1.2}
+.key-res h4{margin:4px 0 2px;font:700 21px var(--font-head)}
+.key-res p{margin:0 0 12px;color:var(--ink-soft);font-size:14px}
+.note{margin-top:10px;font-size:12.5px;color:var(--ink-soft)}
+.ws-card{background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.95);border-radius:20px;padding:18px;margin:0 0 14px}
+.ws-card h2{margin:0 0 12px;font:600 18px/1.3 var(--font-head);color:var(--ink)}
+.ws-card h3{margin:2px 0 10px;font:600 16px/1.3 var(--font-head);color:var(--ink)}
+.ws-card ul{margin:0 0 12px;padding-left:20px}
+.ws-card li{margin:3px 0}
+label{display:block;font-weight:600;font-size:14px;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid rgba(16,48,43,.2);border-radius:12px;font:inherit;font-size:14.5px;background:rgba(255,255,255,.92);color:var(--ink);transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 30%,transparent)}
+textarea{min-height:88px;resize:vertical}
+input[type=file]{padding:8px;background:rgba(255,255,255,.7)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.status{padding:10px 13px;background:rgba(31,122,98,.12);border-radius:12px;color:#145a49;font-size:14px}
+.plant{border:1px dashed rgba(16,48,43,.28);padding:14px;border-radius:16px;margin:12px 0;background:rgba(255,255,255,.55)}
+.photo-preview{max-width:100%;max-height:260px;display:block;margin:10px auto;border-radius:12px}
+.small{font-size:13px;color:var(--ink-soft)}
+.clue{margin-top:6px;padding:7px 11px;border-radius:10px;background:rgba(255,255,255,.8);border:1px solid var(--line);font-size:12.5px;color:var(--ink-soft)}
+.clue[hidden]{display:none}
+.progress{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.progress span{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.8);border:1px solid var(--line);font-size:13px;font-weight:600}
+.progress b{color:var(--accent-deep)}
+.table-wrap{overflow-x:auto}
+footer.foot{text-align:center;color:var(--ink-soft);font-size:13px;padding:6px 0 0}
+.toast{position:fixed;z-index:50;left:50%;bottom:26px;transform:translate(-50%,24px);padding:11px 20px;border-radius:999px;background:rgba(6,24,22,.9);color:#effff7;font-size:14px;font-weight:500;opacity:0;pointer-events:none;transition:opacity .3s,transform .4s cubic-bezier(.2,.9,.3,1.25);max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+button:focus-visible,.tab:focus-visible,.chip:focus-visible,.tool:focus-visible,.spot-item:focus-visible,.key-opt:focus-visible,.cmp tbody tr:focus-visible{outline:3px solid var(--accent2);outline-offset:2px}
+@media(max-width:1180px){
+.layout{grid-template-columns:minmax(0,1.05fr) minmax(330px,.95fr)}
+.stage-hint{display:none}
+.chip small{display:none}
+.chip{padding:8px 13px 8px 10px}
+}
+@media(max-width:960px){
+body{overflow:auto}
+.app{height:auto;min-height:100vh;min-height:100dvh}
+.layout{display:flex;flex-direction:column}
+.stage{flex:none;height:min(66vh,600px);min-height:430px}
+.panel{overflow:visible;flex:none}
+.pane{overflow:visible}
+.tabs{position:sticky;top:8px;z-index:10;background:rgba(240,249,245,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.stage-title{top:78px;left:18px}
+.brand p{display:none}
+}
+@media(max-width:620px){
+.app{padding:10px}
+.grid,.traits,.key-opts{grid-template-columns:1fr}
+.top-badges{display:none}
+.stage{border-radius:22px}
+.stage-title{max-width:80%}
+.hotcard{left:10px;bottom:10px;width:calc(100% - 20px);max-height:58%}
+.tool{width:38px;height:38px;font-size:16px}
+.chip .em{display:none}
+.pane{padding:14px 14px 24px}
+}
+@media(prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+.hs-pulse{display:none}
+}
+@media print{
+@page{size:A4;margin:14mm}
+html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+body.printing-report>*:not(#pdfReport){display:none!important}
+body.printing-report #pdfReport{display:block!important;color:#222;font:10.5pt/1.5 "Noto Sans Thai",Tahoma,sans-serif}
+.pdf-page{page-break-after:always}.pdf-page:last-child{page-break-after:auto}
+#pdfReport h1{text-align:center;color:#245b46;font-size:25pt;margin:8mm 0 2mm}
+#pdfReport h2{color:#245b46;font-size:15pt;border-bottom:1px solid #b9cdbf;padding-bottom:2mm;margin:5mm 0 3mm}
+#pdfReport table{width:100%;border-collapse:collapse;font-size:8.5pt}
+#pdfReport th,#pdfReport td{border:1px solid #9aafa1;padding:4px;vertical-align:top}
+#pdfReport th{background:#eaf4ec!important;print-color-adjust:exact}
+.pdf-evidence{border:1px solid #b9cdbf;padding:4mm;margin:3mm 0;page-break-inside:avoid}
+.pdf-img{display:block;max-width:150mm;max-height:95mm;object-fit:contain;margin:3mm auto}
+.pdf-answer{margin:4mm 0;padding-bottom:2mm;border-bottom:1px solid #ddd;min-height:18mm}
+.pdf-foot{text-align:center;color:#64736a;margin-top:10mm}
+}
+#pdfReport{display:none}
+</style>
+</head>
+<body>
+<div class="aurora"></div>
+<div class="app" id="app">
+<header class="topbar glass">
+<div class="brand">
+<div class="brand-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19C5 10 10 5 19 5c0 9-5 14-14 14z"/><path d="M5 19L14 10"/></svg></div>
+<div><h1>Plant Explorer 3D</h1><p>ห้องปฏิบัติการอาณาจักรพืช ชีววิทยา ม.6</p></div>
+</div>
+<div class="top-badges"><span class="badge">กิจกรรมคู่ 2 คน</span><span class="badge">โมเดล 3 มิติ 4 กลุ่ม</span></div>
+</header>
+<main class="layout">
+<section class="stage labels" id="stage" aria-label="ฉากจำลอง 3 มิติ">
+<div id="canvasHost"></div>
+<div id="hotspots"></div>
+<div class="stage-top">
+<div class="chips" id="chips" role="group" aria-label="เลือกกลุ่มพืช"></div>
+<div class="tools">
+<button class="tool" type="button" data-act="toggleRotate" id="btnRotate" aria-pressed="true" title="หมุนอัตโนมัติ" aria-label="หมุนอัตโนมัติ">🔄</button>
+<button class="tool" type="button" data-act="resetView" title="รีเซ็ตมุมกล้อง" aria-label="รีเซ็ตมุมกล้อง">🎯</button>
+<button class="tool" type="button" data-act="toggleLabels" id="btnLabels" aria-pressed="true" title="แสดงชื่อจุดสำคัญ" aria-label="แสดงชื่อจุดสำคัญ">🏷️</button>
+</div>
+</div>
+<div class="stage-title" id="stageTitle"></div>
+<div class="stage-hint"><span>🖱️ คลิกซ้ายลากเพื่อหมุน</span><span>✋ คลิกขวาลากเพื่อแพน</span><span>🔍 ลูกกลิ้งเมาส์เพื่อซูม</span></div>
+<div class="hotcard" id="hotcard" role="dialog" aria-live="polite"></div>
+<div class="loader" id="loader"><div><div class="spinner"></div>กำลังเตรียมโมเดล 3 มิติ</div></div>
+<div class="fallback" id="fallback" hidden><div><div style="font-size:42px">🌿</div><p>ไม่สามารถแสดงโมเดล 3 มิติได้ในขณะนี้ กรุณาตรวจสอบอินเทอร์เน็ตและการรองรับ WebGL ของเบราว์เซอร์ แล้วรีเฟรชหน้านี้อีกครั้ง</p><p>เนื้อหาความรู้และใบงานยังใช้งานได้ตามปกติ</p></div></div>
+</section>
+<aside class="panel glass">
+<div class="tabs" role="tablist">
+<button class="tab" type="button" role="tab" id="tabLearn" data-act="tab" data-tab="learn" aria-selected="true">📚 ความรู้</button>
+<button class="tab" type="button" role="tab" id="tabWork" data-act="tab" data-tab="work" aria-selected="false">📝 ใบงาน <span class="tab-badge" id="workBadge">0/8</span></button>
+</div>
+<section class="pane" id="paneLearn" role="tabpanel" aria-labelledby="tabLearn">
+<div class="dv-view" id="dvView"></div>
+<section class="blk"><h3>เปรียบเทียบพืชทั้ง 4 กลุ่ม</h3><div class="tbl-wrap"><table class="cmp" id="cmp"></table></div></section>
+<section class="blk"><h3>ตัวช่วยจำแนกพืชภาคสนาม</h3><div class="keybox" id="keyView"></div><p class="note">ท่อลำเลียงมองไม่เห็นด้วยตาเปล่า จึงใช้ลักษณะภายนอก เช่น ราก ลำต้น ใบ โคน ดอก และผล ประกอบการตัดสินใจ</p></section>
+</section>
+<section class="pane" id="paneWork" role="tabpanel" aria-labelledby="tabWork" hidden>
+<div class="progress"><span>พืชที่บันทึก <b id="progPlants">0/8</b></span><span>ภาพหลักฐาน <b id="progEvid">0/4</b></span></div>
+<div class="ws-card">
+<h2>👩‍🎓 ข้อมูลสมาชิก</h2>
+<div class="grid">
+<div><label for="student1">ชื่อ–นามสกุล สมาชิกคนที่ 1</label><input id="student1" placeholder="ชื่อและนามสกุล"></div>
+<div><label for="class1">ชั้น / เลขที่</label><input id="class1" placeholder="เช่น 6/1 เลขที่ 12"></div>
+<div><label for="student2">ชื่อ–นามสกุล สมาชิกคนที่ 2</label><input id="student2" placeholder="ชื่อและนามสกุล"></div>
+<div><label for="class2">ชั้น / เลขที่</label><input id="class2" placeholder="เช่น 6/1 เลขที่ 13"></div>
+<div><label for="school">โรงเรียน</label><input id="school" placeholder="ชื่อโรงเรียน"></div>
+<div><label for="date">วันที่สำรวจ</label><input id="date" type="date"></div>
+</div>
+<div class="actions"><button class="btn secondary" type="button" onclick="saveLocal()">💾 บันทึกในอุปกรณ์นี้</button><button class="btn secondary" type="button" onclick="loadLocal()">↩️ โหลดข้อมูลที่บันทึก</button></div>
+<p class="small">หมายเหตุ: รุ่น HTML นี้บันทึกข้อมูลไว้ในเบราว์เซอร์ของอุปกรณ์ที่ใช้งาน (Local Storage) ยังไม่ได้ส่งข้อมูลไปยังฐานข้อมูลกลางของครู</p>
+</div>
+<div class="ws-card">
+<h2>🎯 ภารกิจ</h2>
+<ul>
+<li>สำรวจพืชในโรงเรียนอย่างน้อย 8 ชนิด</li>
+<li>ถ่ายภาพพืชจริง และบันทึกบริเวณที่พบ</li>
+<li>จำแนก Division พร้อมอธิบายลักษณะเด่นและหลักฐาน</li>
+<li>ไม่เด็ดหรือทำลายพืชระหว่างสำรวจ</li>
+</ul>
+<div class="status">Division ที่ใช้เป็นแนวทาง: Bryophyta, Pteridophyta, Gymnosperms, Angiosperms</div>
+</div>
+<div class="ws-card">
+<h2>📋 ตารางสำรวจพืช</h2>
+<p class="small">กรอกข้อมูลพืชอย่างน้อย 8 ชนิด สามารถเพิ่มรายการได้ เลือก Division แล้วจะมีคำใบ้ลักษณะเด่นแสดงใต้ช่องเลือก</p>
+<div id="plants"></div>
+<div class="actions"><button class="btn secondary" type="button" onclick="addPlant()">＋ เพิ่มพืชอีก 1 รายการ</button></div>
+</div>
+<div class="ws-card">
+<h2>📸 หลักฐานภาพถ่าย</h2>
+<p>เลือกภาพพืชที่สำรวจ 4 ชนิด เพื่อใช้เป็นหลักฐานประกอบการจำแนก</p>
+<div id="evidence"></div>
+</div>
+<div class="ws-card">
+<h2>🧠 วิเคราะห์และอภิปรายผล</h2>
+<label for="q1">1. พบพืช Division ใดมากที่สุด เพราะเหตุใดจึงคิดว่าพบมากในโรงเรียน?</label><textarea id="q1"></textarea>
+<label for="q2">2. พืชที่สำรวจมีลักษณะใดเหมือนกัน และแตกต่างกันอย่างชัดเจน?</label><textarea id="q2"></textarea>
+<label for="q3">3. หากพบพืชไม่มีดอก จะใช้ลักษณะใดจำแนก และมีข้อจำกัดอะไร?</label><textarea id="q3"></textarea>
+<label for="q4">4. พืชเมล็ดเปลือยแตกต่างจากพืชดอกอย่างไร?</label><textarea id="q4"></textarea>
+<label for="q5">5. จะปรับปรุงวิธีสำรวจให้มีความน่าเชื่อถือมากขึ้นได้อย่างไร?</label><textarea id="q5"></textarea>
+<label for="summary">สรุปผลการเรียนรู้</label><textarea id="summary" placeholder="สรุปสิ่งที่ได้เรียนรู้จากการสำรวจ"></textarea>
+<div class="grid">
+<div><label for="role1">หน้าที่สมาชิกคนที่ 1</label><input id="role1"></div>
+<div><label for="role2">หน้าที่สมาชิกคนที่ 2</label><input id="role2"></div>
+</div>
+</div>
+<div class="ws-card">
+<h2>📤 ส่งออกผลงาน</h2>
+<p>ส่งออกผลงานเป็นไฟล์ PDF เท่านั้น โดยเลือก “บันทึกเป็น PDF (Save as PDF)” ในหน้าต่างที่เปิดขึ้น</p>
+<div class="actions">
+<button class="btn" type="button" onclick="exportPDF()">⬇️ ส่งออกเป็น PDF</button>
+<button class="btn danger" type="button" onclick="clearAll()">ล้างข้อมูลในแบบฟอร์ม</button>
+</div>
+<p id="message" class="status" aria-live="polite" style="margin-top:12px">ข้อมูลยังไม่ถูกบันทึก</p>
+</div>
+<footer class="foot">Plant Explorer 3D • เรียนรู้จากพืชจริงในโรงเรียน 🌱</footer>
+</section>
+</aside>
+</main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.from((r||document).querySelectorAll(s));
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DIVISIONS=[
+{id:"bryo",key:"Bryophyta",th:"พืชไม่มีท่อลำเลียง",short:"มอส",emoji:"🌱",
+accent:"#9ccc65",accent2:"#5fa83a",deep:"#4a7a17",ink:"#1c3a0e",
+common:"มอส ลิเวอร์เวิร์ต และฮอร์นเวิร์ต",
+tagline:"พืชบกกลุ่มแรก ตัวเตี้ย ชอบที่ชื้น",
+summary:"ไบรโอไฟต์ไม่มีท่อลำเลียงแบบไซเลมและโฟลเอม จึงมีลำต้นเตี้ยและพบมากในที่ชื้นแฉะ ส่วนที่เป็นเบาะสีเขียวคือแกมีโทไฟต์ (n) ซึ่งเป็นระยะเด่น ส่วนสปอโรไฟต์ (2n) เป็นก้านชูอับสปอร์ที่งอกออกมาและต้องอาศัยแกมีโทไฟต์เลี้ยงตลอดชีวิต",
+traits:[{k:"ท่อลำเลียง",v:"ไม่มี",ok:false},{k:"เมล็ด",v:"ไม่มี ใช้สปอร์",ok:false},{k:"ดอกและผล",v:"ไม่มี",ok:false},{k:"ระยะเด่น",v:"แกมีโทไฟต์ (n)",ok:null}],
+examples:["มอสทั่วไป (Funaria)","พีทมอส (Sphagnum)","ลิเวอร์เวิร์ต (Marchantia)","ฮอร์นเวิร์ต (Anthoceros)"],
+clue:"คำใบ้: ต้นเตี้ยติดพื้นหรือผนังชื้น ไม่มีรากแท้ อาจมีก้านชูแคปซูลสปอร์",
+hotspots:[
+{id:"capsule",title:"แคปซูลสปอร์ (Capsule)",tag:"สปอโรไฟต์ 2n",text:"อับสปอร์ที่ปลายก้าน เซลล์ภายในแบ่งแบบไมโอซิสได้สปอร์ (n) จำนวนมาก เมื่อแก่ฝาปิดเปิดออกให้สปอร์ปลิวไปตามลม",fact:"สปอร์ที่ตกบนที่ชื้นจะงอกเป็นโพรโทนีมาก่อนเจริญเป็นต้นมอสใหม่"},
+{id:"seta",title:"ก้านชูแคปซูล (Seta)",tag:"สปอโรไฟต์ 2n",text:"ก้านยกแคปซูลให้สูงขึ้นเพื่อให้สปอร์ฟุ้งกระจายได้ไกล ฐานก้านฝังอยู่ในแกมีโทไฟต์ จึงต้องอาศัยน้ำและอาหารจากต้นมอส",fact:"สปอโรไฟต์ของมอสไม่เคยแยกไปมีชีวิตอิสระ ต่างจากเฟิน"},
+{id:"gameto",title:"ต้นแกมีโทไฟต์ (Gametophyte)",tag:"ระยะเด่น n",text:"เบาะสีเขียวที่เห็นคือแกมีโทไฟต์ มีโครงสร้างคล้ายลำต้นและใบ แต่ไม่มีท่อลำเลียงจึงไม่ใช่ใบและลำต้นแท้ สังเคราะห์ด้วยแสงและสร้างเซลล์สืบพันธุ์",fact:"อสุจิของมอสต้องว่ายผ่านฟิล์มน้ำไปผสมกับไข่ จึงต้องการความชื้น"},
+{id:"rhizoid",title:"ไรซอยด์ (Rhizoid)",tag:"ยึดเกาะ",inner:true,text:"เส้นใยเล็ก ๆ ใช้ยึดต้นมอสกับพื้นผิวและช่วยดูดซับน้ำได้บ้าง ไม่ใช่รากแท้ เพราะไม่มีไซเลมและโฟลเอม",fact:"มอสหลายชนิดทนแล้งได้ โดยแห้งสนิทแล้วฟื้นตัวเมื่อได้รับน้ำ"}
+]},
+{id:"ptero",key:"Pteridophyta",th:"พืชมีท่อลำเลียง ไม่มีเมล็ด",short:"เฟิน",emoji:"🌿",
+accent:"#35c4a0",accent2:"#12a37f",deep:"#0c7a63",ink:"#053b30",
+common:"เฟิน กูด หญ้าถอดปล้อง และช้องนางคลี่",
+tagline:"พืชมีท่อลำเลียงกลุ่มแรก ที่ยังขยายพันธุ์ด้วยสปอร์",
+summary:"เฟินและพวกมีรากแท้ ลำต้น และใบแท้ที่มีท่อลำเลียง จึงสูงได้มากกว่าไบรโอไฟต์ ต้นที่เห็นคือสปอโรไฟต์ (2n) ซึ่งเป็นระยะเด่น สร้างสปอร์ในอับสปอร์ที่มักรวมเป็นกลุ่มใต้ใบ สปอร์งอกเป็นโพรทัลลัสขนาดเล็กที่ใช้ชีวิตอิสระ และอสุจิยังต้องว่ายในน้ำเพื่อไปผสมกับไข่",
+traits:[{k:"ท่อลำเลียง",v:"มี",ok:true},{k:"เมล็ด",v:"ไม่มี ใช้สปอร์",ok:false},{k:"ดอกและผล",v:"ไม่มี",ok:false},{k:"ระยะเด่น",v:"สปอโรไฟต์ (2n)",ok:null}],
+examples:["ผักกูด","ชายผ้าสีดา","เฟินบอสตัน","หญ้าถอดปล้อง (Equisetum)","ช้องนางคลี่ (Lycopodium)"],
+clue:"คำใบ้: มีรากและลำต้นใต้ดิน ใบแผ่หรือแฉกเป็นฝอย มักมีจุดสปอร์ใต้ใบ และใบอ่อนม้วนเป็นวง",
+hotspots:[
+{id:"frond",title:"ใบเฟิน (Frond)",tag:"สปอโรไฟต์ 2n",text:"ใบแท้แบบประกอบแยกเป็นใบย่อยจำนวนมาก มีท่อลำเลียงเรียงตัวอยู่ในเส้นใบ จึงลำเลียงน้ำและอาหารได้ทั่วทั้งใบ",fact:"ใบเฟินมีขนาดใหญ่เมื่อเทียบกับใบมอส จึงสังเคราะห์ด้วยแสงได้มาก"},
+{id:"sorus",title:"กลุ่มอับสปอร์ (Sorus)",tag:"สร้างสปอร์",text:"จุดสีน้ำตาลบนใบย่อยคือกลุ่มของสปอร์แรนเจียม แต่ละอับมีเซลล์แบ่งแบบไมโอซิสได้สปอร์ (n) แล้วดีดสปอร์ออกเมื่อแก่",fact:"จุดสปอร์เป็นหลักฐานสำคัญในการจำแนกเฟินออกจากพืชกลุ่มอื่น"},
+{id:"fiddle",title:"ใบอ่อนม้วนเป็นวง (Fiddlehead)",tag:"ลักษณะเด่น",text:"ใบอ่อนของเฟินม้วนเป็นก้นหอยก่อนคลี่ออก ช่วยปกป้องปลายยอดอ่อนขณะเติบโต เป็นลักษณะที่สังเกตได้ง่ายในภาคสนาม",fact:"เรียกว่า fiddlehead เพราะคล้ายหัวไวโอลิน"},
+{id:"rhizome",title:"เหง้า (Rhizome)",tag:"ลำต้นใต้ดิน",text:"ลำต้นแท้ที่เจริญตามแนวนอนใกล้ผิวดิน มีท่อลำเลียงเชื่อมรากกับใบ และเป็นจุดที่แตกใบใหม่ออกมา",fact:"เฟินหลายชนิดขยายพันธุ์ได้จากเหง้า นอกเหนือจากสปอร์"},
+{id:"root",title:"รากแท้ (Root)",tag:"ลักษณะเด่น",inner:true,text:"รากแตกออกจากเหง้า มีไซเลมและโฟลเอม จึงดูดน้ำและแร่ธาตุจากดินส่งไปยังต้นได้ ต่างจากไรซอยด์ของมอส",fact:"รากของเฟินเป็นรากแบบเสริม (adventitious) เพราะแตกออกจากลำต้น"}
+]},
+{id:"gymno",key:"Gymnosperms",th:"พืชเมล็ดเปลือย",short:"สน",emoji:"🌲",
+accent:"#e0a458",accent2:"#c47a2c",deep:"#98621a",ink:"#4a2c06",
+common:"สน ปรง แปะก๊วย และเหลียง",
+tagline:"เมล็ดวางเปลือยบนเกล็ดของโคน ไม่มีผลห่อหุ้ม",
+summary:"พืชเมล็ดเปลือยมีท่อลำเลียงและสร้างเมล็ด แต่ออวุลและเมล็ดไม่ถูกรังไข่ห่อหุ้ม จึงวางเปลือยอยู่บนเกล็ดของโคน ส่วนใหญ่เป็นไม้ยืนต้นที่ผสมเกสรด้วยลม ต้นที่เห็นคือสปอโรไฟต์ (2n) โดยโคนเพศผู้และโคนเพศเมียแยกกัน",
+traits:[{k:"ท่อลำเลียง",v:"มี",ok:true},{k:"เมล็ด",v:"มี เมล็ดเปลือย",ok:true},{k:"ดอกและผล",v:"ไม่มี มีโคน",ok:false},{k:"ระยะเด่น",v:"สปอโรไฟต์ (2n)",ok:null}],
+examples:["สนสองใบ (Pinus merkusii)","ปรง (Cycas)","แปะก๊วย (Ginkgo)","เหลียง (Gnetum)"],
+clue:"คำใบ้: ไม้ยืนต้นมีโคน ใบรูปเข็มหรือเป็นแผ่นแข็ง ไม่มีดอกและผลจริง",
+hotspots:[
+{id:"female",title:"โคนเพศเมีย (Ovulate cone)",tag:"เมล็ดเปลือย",text:"ออวุลอยู่บนผิวเกล็ดของโคน เมื่อได้รับการผสมจะเจริญเป็นเมล็ดที่ไม่มีผลหุ้ม จึงเรียกว่าพืชเมล็ดเปลือย สนส่วนใหญ่ใช้เวลาประมาณ 2 ปีจนเมล็ดแก่",fact:"เกล็ดของโคนเรียงตัวเป็นเกลียว ช่วยให้เก็บเมล็ดได้จำนวนมากในพื้นที่จำกัด"},
+{id:"male",title:"โคนเพศผู้ (Pollen cone)",tag:"สร้างละอองเรณู",text:"ภายในมีไมโครสปอร์แรนเจียมที่สร้างละอองเรณูจำนวนมาก ละอองเรณูของสนมีถุงอากาศช่วยให้ลอยไปตามลมได้ไกล",fact:"การผสมเกสรด้วยลมต้องผลิตละอองเรณูมาก จึงมักเห็นเป็นฝุ่นสีเหลืองในฤดูผสมเกสร"},
+{id:"needle",title:"ใบเข็ม (Needle)",tag:"ลดการเสียน้ำ",text:"ใบรูปเข็มมีพื้นที่ผิวน้อย คิวทิเคิลหนา และปากใบอยู่ลึกลงไปจากผิว ช่วยลดการสูญเสียน้ำ ใบสนมักเกิดเป็นกระจุก",fact:"สนสองใบมีใบอยู่เป็นคู่ในแต่ละกระจุก"},
+{id:"trunk",title:"ลำต้นเนื้อไม้ (Woody trunk)",tag:"โครงสร้างค้ำจุน",inner:true,text:"มีการเจริญขั้นทุติยภูมิ ได้เนื้อไม้ซึ่งส่วนใหญ่เป็นทราคีด และมีท่อน้ำมันยางที่ช่วยป้องกันแมลงและเชื้อโรค",fact:"ไม้สนไม่มีเวสเซล ต่างจากไม้ของพืชดอกส่วนใหญ่"},
+{id:"seed",title:"เมล็ดมีปีก (Winged seed)",tag:"เมล็ดเปลือย",text:"เมล็ดสนอยู่บนเกล็ดโคน มีปีกบางช่วยให้ปลิวไปตามลม ภายในมีเนื้อเยื่อสะสมอาหารจากแกมีโทไฟต์เพศเมีย (n)",fact:"อาหารสะสมในเมล็ดสนเป็น n ต่างจากเอนโดสเปิร์มของพืชดอกที่เป็น 3n"}
+]},
+{id:"angio",key:"Angiosperms",th:"พืชมีดอก",short:"ดอกไม้",emoji:"🌸",
+accent:"#f06aa4",accent2:"#e0407f",deep:"#b3265f",ink:"#4d0c27",
+common:"ข้าว มะม่วง ทานตะวัน และกล้วยไม้",
+tagline:"ดอกและผลช่วยให้พืชกลุ่มนี้ขยายพันธุ์ได้หลากหลายที่สุด",
+summary:"พืชดอกมีท่อลำเลียงที่มีทั้งเวสเซลและไฟเบอร์ ออวุลถูกหุ้มด้วยรังไข่ เมื่อผสมแล้วรังไข่เจริญเป็นผลและออวุลเจริญเป็นเมล็ด มีการปฏิสนธิซ้อน ได้เอนโดสเปิร์ม 3n เป็นอาหารสะสม ต้นที่เห็นคือสปอโรไฟต์ (2n) ส่วนแกมีโทไฟต์มีขนาดเล็กมากและอยู่ในดอก",
+traits:[{k:"ท่อลำเลียง",v:"มี",ok:true},{k:"เมล็ด",v:"มี อยู่ในผล",ok:true},{k:"ดอกและผล",v:"มี",ok:true},{k:"ระยะเด่น",v:"สปอโรไฟต์ (2n)",ok:null}],
+examples:["ข้าว","มะม่วง","ทานตะวัน","กล้วยไม้","ชบา"],
+clue:"คำใบ้: มีดอกหรือผล เมล็ดอยู่ภายในผล ใบมีหลายรูปแบบ",
+hotspots:[
+{id:"petal",title:"กลีบดอก (Petal)",tag:"ดึงดูดแมลง",text:"กลีบดอกมีสีและกลิ่นสะดุดตาเพื่อดึงดูดสัตว์ผู้ช่วยผสมเกสร ในพืชที่ผสมเกสรด้วยลม กลีบดอกมักลดรูปหรือไม่มี",fact:"กลีบดอกทั้งหมดเรียกรวมว่า corolla"},
+{id:"sepal",title:"กลีบเลี้ยง (Sepal)",tag:"ปกป้องดอกตูม",text:"กลีบเลี้ยงสีเขียวอยู่วงนอกสุด ห่อหุ้มและปกป้องดอกตูม และสังเคราะห์ด้วยแสงได้บ้าง",fact:"กลีบเลี้ยงทั้งหมดเรียกรวมว่า calyx"},
+{id:"stamen",title:"เกสรเพศผู้ (Stamen)",tag:"สร้างละอองเรณู",text:"ประกอบด้วยก้านชูอับเรณู (filament) และอับเรณู (anther) ภายในอับเรณูมีไมโครสปอร์แรนเจียมที่สร้างละอองเรณู",fact:"ละอองเรณูแต่ละเม็ดคือแกมีโทไฟต์เพศผู้ที่ยังเจริญไม่เต็มที่"},
+{id:"stigma",title:"ยอดเกสรเพศเมีย (Stigma)",tag:"รับละอองเรณู",text:"ผิวเหนียวของยอดเกสรเพศเมียรับละอองเรณู จากนั้นหลอดละอองเรณูจะงอกผ่านก้านเกสรเพศเมีย (style) ลงไปยังรังไข่",fact:"ชุดเกสรเพศเมียที่ประกอบด้วยยอด ก้าน และรังไข่ เรียกว่าคาร์เพล (carpel)"},
+{id:"ovary",title:"รังไข่และออวุล (Ovary and ovule)",tag:"เมล็ดอยู่ในผล",inner:true,text:"ออวุลอยู่ภายในรังไข่ เมื่อเกิดปฏิสนธิซ้อน ออวุลจะเจริญเป็นเมล็ด และรังไข่เจริญเป็นผล ต่างจากพืชเมล็ดเปลือยที่ไม่มีรังไข่หุ้มเมล็ด",fact:"ปฏิสนธิซ้อน: สเปิร์มหนึ่งรวมกับไข่ได้ไซโกต 2n อีกหนึ่งรวมกับโพลาร์นิวเคลียสได้เอนโดสเปิร์ม 3n"}
+]}
+];
+const divisions=DIVISIONS.map(d=>d.key).concat(["ยังไม่แน่ใจ"]);
+let plantCount=0,evidenceCount=0,toastTimer=null;
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove("show"),2600);}
+function clueFor(v){const d=DIVISIONS.find(x=>x.key===v);return d?d.clue:"คำใบ้: ลองใช้ตัวช่วยจำแนกในแท็บ “ความรู้” เพื่อช่วยตัดสินใจ";}
+function showClue(sel){const c=sel.parentNode.querySelector(".clue");if(!c)return;c.textContent=clueFor(sel.value);c.hidden=false;}
+function makePlant(i){
+ return `<div class="plant">
+ <h3>พืชลำดับที่ ${i}</h3>
+ <div class="grid">
+ <div><label>ชื่อพืช</label><input data-p="${i}" data-k="name" placeholder="ชื่อสามัญ/ชื่อวิทยาศาสตร์"></div>
+ <div><label>บริเวณที่พบ</label><input data-p="${i}" data-k="location" placeholder="เช่น สวนหน้าอาคาร"></div>
+ <div><label>Division</label><select data-p="${i}" data-k="division" onchange="showClue(this)">${divisions.map(d=>`<option>${d}</option>`).join("")}</select><div class="clue" hidden></div></div>
+ <div><label>ลักษณะเด่นที่สังเกตได้</label><input data-p="${i}" data-k="traits" placeholder="เช่น มีใบเป็นแฉก มีอับสปอร์"></div>
+ </div>
+ <label>เหตุผล/หลักฐานที่ใช้จำแนก</label><textarea data-p="${i}" data-k="reason" placeholder="อธิบายลักษณะที่ใช้ประกอบการจำแนก"></textarea>
+ <div class="actions"><button class="btn danger" type="button" onclick="removePlant(${i})">ลบรายการนี้</button></div>
+ </div>`;
+}
+function addPlant(){plantCount++;document.getElementById("plants").insertAdjacentHTML("beforeend",makePlant(plantCount));updateProgress();}
+function removePlant(i){const el=document.querySelector(`[data-p="${i}"]`);if(el){const box=el.closest(".plant");if(box)box.remove();}updateProgress();}
+function makeEvidence(i){
+ return `<div class="plant"><h3>ภาพหลักฐานที่ ${i}</h3>
+ <label>แนบภาพถ่ายพืช (ภาพจะอยู่ในข้อมูลที่บันทึก)</label>
+ <input type="file" accept="image/*" id="photo${i}" onchange="previewImage(${i})">
+ <img id="preview${i}" class="photo-preview" alt="ภาพตัวอย่าง" style="display:none">
+ <div class="grid"><div><label>ชื่อพืช</label><input id="evname${i}"></div><div><label>Division</label><select id="evdiv${i}">${divisions.map(d=>`<option>${d}</option>`).join("")}</select></div></div>
+ <label>ลักษณะเด่นและหลักฐานจากภาพ</label><textarea id="evdesc${i}"></textarea></div>`;
+}
+function addEvidence(){evidenceCount++;document.getElementById("evidence").insertAdjacentHTML("beforeend",makeEvidence(evidenceCount));updateProgress();}
+function previewImage(i){const f=document.getElementById("photo"+i).files[0];if(!f)return;const img=document.getElementById("preview"+i);img.src=URL.createObjectURL(f);img.style.display="block";updateProgress();}
+function updateProgress(){
+ const done=$$("#plants .plant").filter(p=>{const n=p.querySelector('[data-k="name"]');return n&&n.value.trim();}).length;
+ let ev=0;
+ for(let i=1;i<=evidenceCount;i++){const im=document.getElementById("preview"+i);if(im&&im.style.display!=="none"&&im.getAttribute("src"))ev++;}
+ const p=$("#progPlants"),e=$("#progEvid"),b=$("#workBadge");
+ if(p)p.textContent=done+"/8";
+ if(e)e.textContent=ev+"/4";
+ if(b)b.textContent=done+"/8";
+}
+function collect(){
+ const fields=["student1","class1","student2","class2","school","date","q1","q2","q3","q4","q5","summary","role1","role2"];
+ const data={members:{},plants:[],evidence:[],answers:{},roles:{}};
+ fields.slice(0,6).forEach(k=>data.members[k]=document.getElementById(k).value);
+ document.querySelectorAll("[data-p]").forEach(el=>{const i=el.dataset.p,k=el.dataset.k;let p=data.plants.find(x=>x.id==i);if(!p){p={id:Number(i)};data.plants.push(p)}p[k]=el.value});
+ ["q1","q2","q3","q4","q5","summary"].forEach(k=>data.answers[k]=document.getElementById(k).value);
+ ["role1","role2"].forEach(k=>data.roles[k]=document.getElementById(k).value);
+ for(let i=1;i<=evidenceCount;i++){
+  const f=document.getElementById("photo"+i)?.files[0];
+  data.evidence.push({name:document.getElementById("evname"+i)?.value||"",division:document.getElementById("evdiv"+i)?.value||"",description:document.getElementById("evdesc"+i)?.value||"",imageName:f?.name||"",imageData:null});
+ }
+ return data;
+}
+async function collectWithImages(){
+ const data=collect();
+ for(let i=1;i<=evidenceCount;i++){const f=document.getElementById("photo"+i)?.files[0];if(f)data.evidence[i-1].imageData=await toBase64(f);}
+ return data;
+}
+function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file);});}
+async function saveLocal(){try{localStorage.setItem("plantExplorer",JSON.stringify(await collectWithImages()));msg("บันทึกข้อมูลไว้ในเบราว์เซอร์นี้แล้ว ✓");toast("บันทึกข้อมูลแล้ว ✓");}catch(e){msg("บันทึกไม่สำเร็จ อาจมีภาพขนาดใหญ่เกินพื้นที่จัดเก็บ หรือเบราว์เซอร์ปิดการจัดเก็บข้อมูล");}}
+function loadLocal(){
+ let s=null;
+ try{s=localStorage.getItem("plantExplorer");}catch(e){s=null;}
+ if(!s){msg("ยังไม่พบข้อมูลที่บันทึก");toast("ยังไม่พบข้อมูลที่บันทึก");return;}
+ let d;
+ try{d=JSON.parse(s);}catch(e){msg("ข้อมูลที่บันทึกไว้เสียหาย ไม่สามารถโหลดได้");return;}
+ clearForm(true);
+ Object.entries(d.members||{}).forEach(([k,v])=>{if(document.getElementById(k))document.getElementById(k).value=v});
+ (d.plants||[]).forEach(p=>{addPlant();Object.entries(p).forEach(([k,v])=>{const el=document.querySelector(`[data-p="${plantCount}"][data-k="${k}"]`);if(el)el.value=v})});
+ $$('select[data-k="division"]').forEach(s2=>{if(s2.value!==divisions[0]||true)showClue(s2);});
+ ["q1","q2","q3","q4","q5","summary"].forEach(k=>document.getElementById(k).value=d.answers?.[k]||"");
+ ["role1","role2"].forEach(k=>document.getElementById(k).value=d.roles?.[k]||"");
+ (d.evidence||[]).forEach(e=>{addEvidence();document.getElementById("evname"+evidenceCount).value=e.name;document.getElementById("evdiv"+evidenceCount).value=e.division;document.getElementById("evdesc"+evidenceCount).value=e.description;if(e.imageData){const im=document.getElementById("preview"+evidenceCount);im.src=e.imageData;im.style.display="block";}});
+ updateProgress();
+ msg("โหลดข้อมูลเดิมแล้ว ✓");toast("โหลดข้อมูลเดิมแล้ว ✓");
+}
+function exportPDF(){
+ const d=collect();
+ const report=document.createElement("div");report.id="pdfReport";
+ let x=`<section class="pdf-page"><h1>🌿 Plant Explorer</h1><h2>ใบงานสำรวจอาณาจักรพืชในโรงเรียน</h2><p>ชีววิทยา ม.6 • กิจกรรมคู่ 2 คน</p><hr>
+ <p><b>สมาชิก 1:</b> ${esc(d.members.student1)} (${esc(d.members.class1)})</p><p><b>สมาชิก 2:</b> ${esc(d.members.student2)} (${esc(d.members.class2)})</p>
+ <p><b>โรงเรียน:</b> ${esc(d.members.school)}　<b>วันที่:</b> ${esc(d.members.date)}</p><h2>ตารางบันทึกผลการสำรวจ</h2>
+ <table><thead><tr><th>ลำดับ</th><th>ชื่อพืช</th><th>บริเวณที่พบ</th><th>Division</th><th>ลักษณะเด่น/หลักฐาน</th></tr></thead><tbody>`;
+ d.plants.forEach(p=>x+=`<tr><td>${p.id}</td><td>${esc(p.name)}</td><td>${esc(p.location)}</td><td>${esc(p.division)}</td><td>${esc(p.traits)}<br>${esc(p.reason)}</td></tr>`);
+ x+=`</tbody></table></section><section class="pdf-page"><h2>หลักฐานภาพถ่ายจากการสำรวจ</h2>`;
+ for(let i=1;i<=evidenceCount;i++){
+  const im=document.getElementById("preview"+i),name=document.getElementById("evname"+i)?.value||"",dv=document.getElementById("evdiv"+i)?.value||"",desc=document.getElementById("evdesc"+i)?.value||"";
+  x+=`<article class="pdf-evidence"><h3>ภาพที่ ${i}: ${esc(name)}</h3><p><b>Division:</b> ${esc(dv)}</p>`;
+  if(im?.src&&im.style.display!=="none")x+=`<img src="${im.src}" class="pdf-img">`;
+  x+=`<p><b>ลักษณะเด่นและหลักฐาน:</b> ${esc(desc)}</p></article>`;
+ }
+ x+=`</section><section class="pdf-page"><h2>วิเคราะห์และอภิปรายผล</h2>`;
+ [["1. พบพืช Division ใดมากที่สุด เพราะเหตุใด?",d.answers.q1],["2. พืชที่สำรวจเหมือนและแตกต่างกันอย่างไร?",d.answers.q2],["3. หากพบพืชไม่มีดอก ใช้ลักษณะใดจำแนกและมีข้อจำกัดอะไร?",d.answers.q3],["4. พืชเมล็ดเปลือยแตกต่างจากพืชดอกอย่างไร?",d.answers.q4],["5. จะปรับปรุงวิธีสำรวจให้เชื่อถือมากขึ้นอย่างไร?",d.answers.q5],["สรุปผลการเรียนรู้",d.answers.summary]].forEach(q=>x+=`<div class="pdf-answer"><b>${esc(q[0])}</b><p>${esc(q[1]).replace(/\n/g,"<br>")||"—"}</p></div>`);
+ x+=`<h2>การแบ่งหน้าที่</h2><p>สมาชิก 1: ${esc(d.roles.role1)}</p><p>สมาชิก 2: ${esc(d.roles.role2)}</p><p class="pdf-foot">Plant Explorer • ชีววิทยา ม.6</p></section>`;
+ report.innerHTML=x;document.body.appendChild(report);document.body.classList.add("printing-report");
+ msg("เปิดหน้าต่างส่งออก PDF แล้ว ให้เลือก Save as PDF");setTimeout(()=>window.print(),200);
+ window.onafterprint=()=>{document.body.classList.remove("printing-report");report.remove();};
+}
+function msg(t){document.getElementById("message").textContent=t;}
+function clearForm(resetCounters=true){
+ $$("#paneWork input:not([type=file]),#paneWork textarea").forEach(e=>e.value="");
+ document.getElementById("plants").innerHTML="";
+ document.getElementById("evidence").innerHTML="";
+ if(resetCounters){plantCount=0;evidenceCount=0;}
+}
+function resetDefaults(){
+ clearForm(true);
+ document.getElementById("date").value=new Date().toISOString().slice(0,10);
+ for(let i=0;i<8;i++)addPlant();
+ for(let i=0;i<4;i++)addEvidence();
+ updateProgress();
+}
+function clearAll(){
+ if(confirm("ต้องการล้างข้อมูลทั้งหมดในแบบฟอร์มหรือไม่?")){
+  resetDefaults();
+  try{localStorage.removeItem("plantExplorer");}catch(e){}
+  msg("ล้างข้อมูลแล้ว");toast("ล้างข้อมูลแล้ว");
+ }
+}
+function fillFirstEmptyPlant(key){
+ const rows=$$("#plants .plant");
+ let row=rows.find(p=>{const n=p.querySelector('[data-k="name"]');return n&&!n.value.trim();});
+ if(!row){addPlant();row=$$("#plants .plant").pop();}
+ const sel=row.querySelector('[data-k="division"]');
+ if(sel){sel.value=key;showClue(sel);}
+ return row;
+}
+document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#paneWork"))updateProgress();});
+document.addEventListener("change",e=>{if(e.target.closest&&e.target.closest("#paneWork"))updateProgress();});
+resetDefaults();
+</script>
+<script>
+(function(){
+const app=$("#app"),stage=$("#stage"),host=$("#canvasHost"),hsLayer=$("#hotspots"),card=$("#hotcard");
+const REDUCED=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const KEY_STEPS=[
+{q:"พืชมีรากแท้ ลำต้น และใบแท้ชัดเจนหรือไม่",help:"ถ้าเป็นเบาะเตี้ยติดพื้นผิวชื้น และไม่เห็นรากกับลำต้นชัดเจน ให้ตอบว่าเตี้ยติดพื้น",no:"bryo",yes:1,yesLabel:"มีราก ลำต้น ใบชัดเจน",noLabel:"เตี้ยติดพื้น ไม่มีรากแท้"},
+{q:"พืชสร้างเมล็ดหรือไม่",help:"ถ้าพบจุดสปอร์ใต้ใบ และไม่พบโคนหรือผล ให้ตอบว่าไม่สร้างเมล็ด",no:"ptero",yes:2,yesLabel:"สร้างเมล็ด",noLabel:"ไม่สร้างเมล็ด มีจุดสปอร์"},
+{q:"เมล็ดอยู่ภายในผลหรือไม่",help:"ถ้าเมล็ดวางอยู่บนเกล็ดของโคน ให้ตอบว่าไม่อยู่ในผล",no:"gymno",yes:"angio",yesLabel:"มีดอกหรือผลห่อเมล็ด",noLabel:"เมล็ดอยู่บนเกล็ดโคน"}
+];
+let keyState={step:0,result:null};
+let activeId=null,spotIndex=-1,three=null;
+const byId=id=>DIVISIONS.find(d=>d.id===id);
+function setTheme(d){
+ app.style.setProperty("--accent",d.accent);
+ app.style.setProperty("--accent2",d.accent2);
+ app.style.setProperty("--accent-deep",d.deep);
+ app.style.setProperty("--accent-ink",d.ink);
+}
+function renderChips(){
+ $("#chips").innerHTML=DIVISIONS.map(d=>`<button class="chip" type="button" data-act="select" data-id="${d.id}" aria-pressed="false"><span class="em">${d.emoji}</span><span>${esc(d.key)}<small>${esc(d.short)}</small></span></button>`).join("");
+}
+function renderTitle(d){
+ const t=$("#stageTitle");
+ t.innerHTML=`<h2>${esc(d.key)}</h2><p>${esc(d.th)}</p>`;
+ t.classList.remove("swap");void t.offsetWidth;t.classList.add("swap");
+}
+function renderLearn(d){
+ const traits=d.traits.map(x=>`<div class="trait ${x.ok===true?"yes":x.ok===false?"no":"neu"}"><span class="trait-k">${esc(x.k)}</span><span class="trait-v"><i>${x.ok===true?"✓":x.ok===false?"✕":"◆"}</i>${esc(x.v)}</span></div>`).join("");
+ const spots=d.hotspots.map((h,i)=>`<button class="spot-item" type="button" data-act="spot" data-i="${i}"><span class="n">${i+1}</span><span><b>${esc(h.title)}</b><small>${esc(h.tag)}</small></span></button>`).join("");
+ const ex=d.examples.map(e=>`<span class="ex">${esc(e)}</span>`).join("");
+ const v=$("#dvView");
+ v.innerHTML=`<div class="dv-hero"><div class="dv-badge">${d.emoji}</div><div><h2 class="dv-key">${esc(d.key)}</h2><p class="dv-th">${esc(d.th)}</p></div></div>
+ <p class="dv-tag">${esc(d.tagline)}</p><p class="dv-sum">${esc(d.summary)}</p><div class="traits">${traits}</div>
+ <section class="blk"><h3>จุดสำคัญบนโมเดล 3 มิติ</h3><div class="spot-list">${spots}</div></section>
+ <section class="blk"><h3>ตัวอย่างพืชในกลุ่มนี้</h3><div class="ex-list">${ex}</div><p class="note">${esc(d.common)}</p></section>
+ <button class="btn wide" type="button" data-act="toWork" data-id="${d.id}">📝 บันทึกพืชกลุ่ม ${esc(d.key)} ลงในใบงาน</button>`;
+ v.classList.remove("swap");void v.offsetWidth;v.classList.add("swap");
+}
+function renderCompare(){
+ const head="<thead><tr><th>Division</th><th>ท่อลำเลียง</th><th>เมล็ด</th><th>ดอกและผล</th><th>ระยะเด่น</th></tr></thead>";
+ const rows=DIVISIONS.map(d=>`<tr tabindex="0" role="button" data-act="select" data-id="${d.id}"><td>${esc(d.key)}</td>${d.traits.map(t=>`<td>${esc(t.v)}</td>`).join("")}</tr>`).join("");
+ $("#cmp").innerHTML=head+"<tbody>"+rows+"</tbody>";
+}
+function markActive(){
+ $$(".chip").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.id===activeId)));
+ $$("#cmp tbody tr").forEach(r=>r.classList.toggle("on",r.dataset.id===activeId));
+ $$(".spot-item").forEach(s=>s.classList.toggle("active",Number(s.dataset.i)===spotIndex));
+}
+function renderKey(){
+ const v=$("#keyView");
+ if(keyState.result){
+  const d=byId(keyState.result);
+  v.innerHTML=`<div class="key-res"><div class="big">${d.emoji}</div><h4>${esc(d.key)}</h4><p>${esc(d.th)}</p><div class="key-opts"><button class="key-opt" type="button" data-act="select" data-id="${d.id}">ดูโมเดล 3 มิติ</button><button class="key-opt" type="button" data-act="keyReset">เริ่มจำแนกใหม่</button></div></div>`;
+  return;
+ }
+ const s=KEY_STEPS[keyState.step];
+ v.innerHTML=`<div class="key-step">ข้อ ${keyState.step+1} จาก ${KEY_STEPS.length}</div><p class="key-q">${esc(s.q)}</p><p class="key-help">${esc(s.help)}</p><div class="key-opts"><button class="key-opt" type="button" data-act="keyNo">${esc(s.noLabel)}</button><button class="key-opt" type="button" data-act="keyYes">${esc(s.yesLabel)}</button></div>${keyState.step>0?'<div class="key-nav"><button class="key-link" type="button" data-act="keyBack">ย้อนกลับ</button></div>':""}`;
+}
+function keyAnswer(yes){
+ const s=KEY_STEPS[keyState.step],n=yes?s.yes:s.no;
+ if(typeof n==="string"){keyState.result=n;renderKey();select(n);}
+ else{keyState.step=n;renderKey();}
+}
+function renderCard(){
+ const d=byId(activeId);
+ if(spotIndex<0||!d){card.classList.remove("show");return;}
+ const h=d.hotspots[spotIndex],n=d.hotspots.length;
+ card.innerHTML=`<button class="hc-close" type="button" data-act="closeSpot" aria-label="ปิดการ์ด">×</button><div class="hc-body"><span class="hc-tag">${esc(h.tag)}</span><h3>${esc(h.title)}</h3><p>${esc(h.text)}</p><div class="hc-fact"><span>💡</span><p>${esc(h.fact)}</p></div></div><div class="hc-foot"><button type="button" data-act="prevSpot" aria-label="จุดก่อนหน้า">‹</button><span>${spotIndex+1} / ${n}</span><button type="button" data-act="nextSpot" aria-label="จุดถัดไป">›</button></div>`;
+ card.classList.add("show");
+}
+function openSpot(i){
+ const d=byId(activeId);if(!d)return;
+ const n=d.hotspots.length;
+ spotIndex=((i%n)+n)%n;
+ renderCard();markActive();
+ if(three)three.focusSpot(spotIndex);
+}
+function closeSpot(){
+ spotIndex=-1;card.classList.remove("show");markActive();
+ if(three)three.clearSpot();
+}
+function select(id){
+ const d=byId(id);if(!d)return;
+ if(activeId===id)return;
+ activeId=id;spotIndex=-1;card.classList.remove("show");
+ setTheme(d);renderTitle(d);renderLearn(d);markActive();
+ if(three)three.show(id);
+}
+function switchTab(t){
+ const learn=t==="learn";
+ $("#paneLearn").hidden=!learn;$("#paneWork").hidden=learn;
+ $("#tabLearn").setAttribute("aria-selected",String(learn));
+ $("#tabWork").setAttribute("aria-selected",String(!learn));
+ const p=learn?$("#paneLearn"):$("#paneWork");
+ p.scrollTop=0;
+}
+document.addEventListener("click",e=>{
+ const t=e.target.closest("[data-act]");if(!t)return;
+ const a=t.dataset.act;
+ if(a==="select")select(t.dataset.id);
+ else if(a==="spot")openSpot(Number(t.dataset.i));
+ else if(a==="closeSpot")closeSpot();
+ else if(a==="nextSpot")openSpot(spotIndex+1);
+ else if(a==="prevSpot")openSpot(spotIndex-1);
+ else if(a==="tab")switchTab(t.dataset.tab);
+ else if(a==="keyYes")keyAnswer(true);
+ else if(a==="keyNo")keyAnswer(false);
+ else if(a==="keyBack"){keyState.step=Math.max(0,keyState.step-1);renderKey();}
+ else if(a==="keyReset"){keyState={step:0,result:null};renderKey();}
+ else if(a==="toWork"){
+  const d=byId(t.dataset.id);
+  switchTab("work");
+  const row=fillFirstEmptyPlant(d.key);
+  updateProgress();
+  requestAnimationFrame(()=>{row.scrollIntoView({behavior:REDUCED?"auto":"smooth",block:"center"});const n=row.querySelector('[data-k="name"]');if(n)n.focus({preventScroll:true});});
+  toast("เลือก "+d.key+" ในใบงานให้แล้ว กรอกชื่อพืชที่พบได้เลย");
+ }
+ else if(a==="toggleRotate"&&three){const on=three.toggleRotate();t.setAttribute("aria-pressed",String(on));}
+ else if(a==="resetView"&&three)three.resetView();
+ else if(a==="toggleLabels"){const on=stage.classList.toggle("labels");t.setAttribute("aria-pressed",String(on));}
+});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"&&spotIndex>=0)closeSpot();
+ if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#cmp tbody tr")){e.preventDefault();select(e.target.dataset.id);}
+});
+
+function init3D(){
+ const rng=seed=>{let s=seed>>>0;return()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};};
+ const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+ const M=(color,o)=>new THREE.MeshStandardMaterial(Object.assign({color:color,roughness:0.65,metalness:0},o||{}));
+ const inst=(geo,mat,n)=>{const m=new THREE.InstancedMesh(geo,mat,n);m.frustumCulled=false;return m;};
+ const ease=k=>k<0.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;
+ const easeBack=k=>{const c1=1.45,c3=c1+1;return 1+c3*Math.pow(k-1,3)+c1*Math.pow(k-1,2);};
+ const angDiff=(a,t)=>Math.abs(Math.atan2(Math.sin(a-t),Math.cos(a-t)));
+
+ const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
+ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+ renderer.shadowMap.enabled=true;
+ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+ renderer.toneMapping=THREE.ACESFilmicToneMapping;
+ renderer.toneMappingExposure=1.18;
+ renderer.localClippingEnabled=true;
+ renderer.setClearColor(0x000000,0);
+ host.appendChild(renderer.domElement);
+
+ const scene=new THREE.Scene();
+ const camera=new THREE.PerspectiveCamera(40,1,0.1,120);
+ camera.position.set(6,4.5,7);
+ const controls=new THREE.OrbitControls(camera,renderer.domElement);
+ controls.enableDamping=true;
+ controls.dampingFactor=0.07;
+ controls.enablePan=true;
+ controls.screenSpacePanning=true;
+ controls.enableZoom=true;
+ controls.enableRotate=true;
+ controls.rotateSpeed=0.8;
+ controls.zoomSpeed=0.9;
+ controls.panSpeed=0.7;
+ controls.minDistance=2.2;
+ controls.maxDistance=20;
+ controls.maxPolarAngle=Math.PI*0.49;
+ controls.autoRotate=!REDUCED;
+ controls.autoRotateSpeed=1.1;
+ renderer.domElement.style.touchAction="none";
+ renderer.domElement.setAttribute("tabindex","0");
+ renderer.domElement.setAttribute("aria-label","โมเดล 3 มิติ ลากเพื่อหมุน เลื่อนลูกกลิ้งเพื่อซูม");
+
+ scene.add(new THREE.AmbientLight(0xffffff,0.38));
+ scene.add(new THREE.HemisphereLight(0xdcf7e8,0x1a3b34,0.5));
+ const key=new THREE.DirectionalLight(0xfff1d6,1.5);
+ key.position.set(6,11,6);
+ key.target.position.set(0,1.5,0);
+ key.castShadow=true;
+ key.shadow.mapSize.set(2048,2048);
+ key.shadow.camera.left=-7;key.shadow.camera.right=7;key.shadow.camera.top=8;key.shadow.camera.bottom=-6;
+ key.shadow.camera.near=1;key.shadow.camera.far=32;
+ key.shadow.bias=-0.0004;
+ key.shadow.normalBias=0.03;
+ key.shadow.radius=4;
+ scene.add(key);scene.add(key.target);
+ const rim=new THREE.DirectionalLight(0x7fe0c8,0.7);
+ rim.position.set(-7,4,-6);
+ scene.add(rim);
+ const fill=new THREE.DirectionalLight(0xbfd8ff,0.3);
+ fill.position.set(-4,3,7);
+ scene.add(fill);
+
+ const radialTex=()=>{const c=document.createElement("canvas");c.width=c.height=128;const x=c.getContext("2d");const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,"rgba(255,255,255,0.9)");g.addColorStop(0.45,"rgba(255,255,255,0.28)");g.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=g;x.fillRect(0,0,128,128);return new THREE.CanvasTexture(c);};
+ const glowTex=radialTex();
+
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(5.05,5.2,0.22,96),M(0x0c2b27,{roughness:0.6,metalness:0.2}));
+ base.position.y=-0.41;base.receiveShadow=true;scene.add(base);
+ const disc=new THREE.Mesh(new THREE.CylinderGeometry(4.6,4.75,0.3,96),M(0x17443c,{roughness:0.5,metalness:0.18}));
+ disc.position.y=-0.15;disc.receiveShadow=true;scene.add(disc);
+ const ringMat=new THREE.MeshBasicMaterial({color:0xf06aa4});
+ const ring=new THREE.Mesh(new THREE.TorusGeometry(4.66,0.03,16,160),ringMat);
+ ring.rotation.x=Math.PI/2;ring.position.y=0.0;scene.add(ring);
+ const ring2=new THREE.Mesh(new THREE.TorusGeometry(3.7,0.012,12,160),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:0.18}));
+ ring2.rotation.x=Math.PI/2;ring2.position.y=0.005;scene.add(ring2);
+ const glowMat=new THREE.MeshBasicMaterial({map:glowTex,color:0xf06aa4,transparent:true,opacity:0.55,depthWrite:false,blending:THREE.AdditiveBlending});
+ const glow=new THREE.Mesh(new THREE.CircleGeometry(4.6,64),glowMat);
+ glow.rotation.x=-Math.PI/2;glow.position.y=0.012;scene.add(glow);
+
+ const PN=150,pp=new Float32Array(PN*3),pv=new Float32Array(PN);
+ for(let i=0;i<PN;i++){const a=Math.random()*6.2832,rr=Math.sqrt(Math.random())*4.3;pp[i*3]=Math.cos(a)*rr;pp[i*3+1]=Math.random()*6.4;pp[i*3+2]=Math.sin(a)*rr;pv[i]=0.08+Math.random()*0.2;}
+ const pg=new THREE.BufferGeometry();
+ pg.setAttribute("position",new THREE.BufferAttribute(pp,3));
+ const pmat=new THREE.PointsMaterial({size:0.2,map:glowTex,color:0xf06aa4,transparent:true,opacity:0.7,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true});
+ const points=new THREE.Points(pg,pmat);
+ points.frustumCulled=false;scene.add(points);
+
+ const shade=g=>{g.traverse(o=>{if(o.isMesh){const ns=o.userData&&o.userData.noShadow;o.castShadow=!ns;o.receiveShadow=!ns;}});};
+
+ function buildMoss(){
+  const g=new THREE.Group(),r=rng(7),spots={};
+  const soil=new THREE.Mesh(new THREE.CylinderGeometry(2.55,2.65,1,72),M(0x7a5236,{transparent:true,opacity:0.34,roughness:0.9,depthWrite:false}));
+  soil.position.y=0.5;soil.userData.noShadow=true;g.add(soil);
+  const bump=(x,z)=>0.05*Math.sin(x*3.1)*Math.cos(z*2.7)+0.03*Math.sin(x*7.3+z*5.1);
+  const cg=new THREE.SphereGeometry(2.35,72,28,0,Math.PI*2,0,Math.PI/2);
+  const cp=cg.attributes.position;
+  for(let i=0;i<cp.count;i++){const x=cp.getX(i),y=cp.getY(i),z=cp.getZ(i);cp.setY(i,y*0.27+(y>0.01?bump(x,z):0));}
+  cg.computeVertexNormals();
+  const cushion=new THREE.Mesh(cg,M(0x3f8a34,{roughness:0.97}));
+  cushion.position.y=1.0;g.add(cushion);
+  const hAt=(x,z)=>{const d=2.35*2.35-x*x-z*z;return(d>0?Math.sqrt(d)*0.27:0)+bump(x,z);};
+  const tg=new THREE.ConeGeometry(0.055,0.36,5);tg.translate(0,0.18,0);
+  const TN=560;
+  const tm=inst(tg,M(0xffffff,{roughness:0.9}),TN);
+  const d=new THREE.Object3D(),c=new THREE.Color();
+  for(let i=0;i<TN;i++){
+   const a=r()*Math.PI*2,rad=2.2*Math.sqrt(r()),x=Math.cos(a)*rad,z=Math.sin(a)*rad;
+   d.position.set(x,1.0+hAt(x,z)-0.03,z);
+   d.rotation.set((r()-0.5)*0.7,r()*6.28,(r()-0.5)*0.7);
+   const s=0.7+r()*0.8;d.scale.set(s,s*(0.8+r()*0.6),s);
+   d.updateMatrix();tm.setMatrixAt(i,d.matrix);
+   c.setHSL(0.24+r()*0.05,0.55+r()*0.2,0.3+r()*0.16);tm.setColorAt(i,c);
+  }
+  tm.instanceColor.needsUpdate=true;g.add(tm);
+  const mkSpore=(x,z,len,tx,tz)=>{
+   const s=new THREE.Group();
+   s.position.set(x,1.0+hAt(x,z)-0.04,z);s.rotation.set(tx,0,tz);
+   const seta=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.03,len,8),M(0xb87a35,{roughness:0.6}));
+   seta.position.y=len/2;s.add(seta);
+   const cap=new THREE.Mesh(new THREE.SphereGeometry(1,20,14),M(0x93501f,{roughness:0.5}));
+   cap.scale.set(0.11,0.2,0.11);cap.position.y=len+0.15;s.add(cap);
+   const op=new THREE.Mesh(new THREE.ConeGeometry(0.075,0.16,14),M(0xd9b46a,{roughness:0.5}));
+   op.position.y=len+0.39;s.add(op);
+   g.add(s);return{s:s,len:len};
+  };
+  const hero=mkSpore(0.45,0.35,1.75,0.05,-0.08);
+  for(let i=0;i<11;i++){
+   const a=r()*6.28,rad=0.4+1.5*Math.sqrt(r());
+   mkSpore(Math.cos(a)*rad,Math.sin(a)*rad,1.15+r()*0.95,(r()-0.5)*0.3,(r()-0.5)*0.3);
+  }
+  const rm=M(0xd1a06a,{roughness:0.7,emissive:0x2a1808});
+  let rh0=null;
+  for(let i=0;i<30;i++){
+   const a=r()*6.28,rad=1.7*Math.sqrt(r());
+   let x=Math.cos(a)*rad,z=Math.sin(a)*rad;
+   if(i===0){x=0.9;z=0.8;}
+   const pts=[V(x,1.0,z),V(x+(r()-0.5)*0.25,0.8,z+(r()-0.5)*0.25),V(x+(r()-0.5)*0.5,0.55,z+(r()-0.5)*0.5),V(x+(r()-0.5)*0.7,0.12+r()*0.3,z+(r()-0.5)*0.7)];
+   const cv=new THREE.CatmullRomCurve3(pts);
+   const m=new THREE.Mesh(new THREE.TubeGeometry(cv,14,0.014,5,false),rm);
+   m.userData.noShadow=true;g.add(m);
+   if(i===0)rh0=cv;
+  }
+  g.updateMatrixWorld(true);
+  spots.capsule=hero.s.localToWorld(V(0,hero.len+0.2,0));
+  spots.seta=hero.s.localToWorld(V(0,hero.len*0.55,0));
+  spots.gameto=V(-1.0,1.0+hAt(-1.0,0.9)+0.25,0.9);
+  spots.rhizoid=rh0.getPoint(0.55);
+  shade(g);
+  return{id:"bryo",group:g,spots:spots,center:1.4,home:{pos:V(5.4,4.0,6.6),target:V(0,1.4,0)}};
+ }
+
+ function buildFern(){
+  const g=new THREE.Group(),r=rng(31),spots={};
+  const up=V(0,1,0);
+  const soil=new THREE.Mesh(new THREE.CylinderGeometry(2.1,2.2,1,72),M(0x7a5236,{transparent:true,opacity:0.34,roughness:0.9,depthWrite:false}));
+  soil.position.y=0.5;soil.userData.noShadow=true;g.add(soil);
+  const rzCurve=new THREE.CatmullRomCurve3([V(-1.0,1.02,-0.05),V(-0.35,0.98,0.15),V(0.35,1.03,-0.1),V(1.05,1.0,0.12)]);
+  const rhizome=new THREE.Mesh(new THREE.TubeGeometry(rzCurve,48,0.24,14,false),M(0x5b3a22,{roughness:0.95}));
+  g.add(rhizome);
+  const rootMat=M(0xc7a06b,{roughness:0.7,emissive:0x2a1808});
+  let rootCurve=null;
+  for(let i=0;i<20;i++){
+   let x=-0.9+1.9*(i/19)+(r()-0.5)*0.1;const z=(r()-0.5)*0.3;
+   const pts=[V(x,0.85,z),V(x+(r()-0.5)*0.3,0.6,z+(r()-0.5)*0.3),V(x+(r()-0.5)*0.5,0.35,z+(r()-0.5)*0.5),V(x+(r()-0.5)*0.6,0.08+r()*0.1,z+(r()-0.5)*0.6)];
+   const cv=new THREE.CatmullRomCurve3(pts);
+   const m=new THREE.Mesh(new THREE.TubeGeometry(cv,14,0.022,5,false),rootMat);
+   m.userData.noShadow=true;g.add(m);
+   if(i===15)rootCurve=cv;
+  }
+  const FN=6,angs=[],Ls=[];
+  for(let f=0;f<FN;f++){angs.push(f/FN*Math.PI*2+0.4+(r()-0.5)*0.25);Ls.push(0.85+r()*0.25);}
+  let hero=0,best=-9;
+  angs.forEach((a,i)=>{const v=Math.cos(a)*0.7+Math.sin(a)*0.7;if(v>best){best=v;hero=i;}});
+  const pin=[],sori=[];
+  const rachisMat=M(0x2f6b3c,{roughness:0.6});
+  for(let f=0;f<FN;f++){
+   const a=angs[f],L=Ls[f],dirH=V(Math.cos(a),0,Math.sin(a)),b=V(Math.cos(a)*0.22,1.2,Math.sin(a)*0.22),pts=[];
+   for(let k=0;k<=24;k++){const t=k/24;pts.push(V(b.x+dirH.x*3.0*L*t,b.y+4.86*L*(t-0.88*t*t),b.z+dirH.z*3.0*L*t));}
+   const cv=new THREE.CatmullRomCurve3(pts);
+   g.add(new THREE.Mesh(new THREE.TubeGeometry(cv,48,0.035,6,false),rachisMat));
+   const P=16;
+   for(let k=0;k<P;k++){
+    const u=k/(P-1),t=0.08+0.9*u,p=cv.getPointAt(t),T=cv.getTangentAt(t);
+    const S=new THREE.Vector3().crossVectors(T,up).normalize();
+    const len=0.85*L*(0.3+0.7*Math.sin(Math.PI*(0.12+0.8*(1-u))));
+    const zsc=0.9+0.3*Math.sin(Math.PI*u);
+    for(let sd=-1;sd<=1;sd+=2){
+     const dir=S.clone().multiplyScalar(0.89*sd).addScaledVector(T,0.45).add(V(0,-0.25,0)).normalize();
+     const yA=new THREE.Vector3().crossVectors(dir,T).normalize();
+     if(yA.y<0)yA.negate();
+     const zA=new THREE.Vector3().crossVectors(dir,yA).normalize();
+     const m=new THREE.Matrix4().makeBasis(dir,yA,zA);
+     m.setPosition(p);
+     m.multiply(new THREE.Matrix4().makeScale(len,1,zsc));
+     pin.push({m:m,u:u});
+     if(u>0.18&&u<0.86){
+      for(let q=0;q<4;q++){
+       const s=0.26+q*0.2,hw=0.2*zsc*Math.sqrt(Math.max(0,1-Math.pow(2*s-1,2)));
+       for(let side=-1;side<=1;side+=2){
+        const sp=p.clone().addScaledVector(dir,len*s).addScaledVector(zA,hw*0.5*side);
+        sori.push(sp);
+        if(f===hero&&k===10&&sd===1&&q===1&&side===1)spots.sorus=sp.clone();
+       }
+      }
+     }
+    }
+   }
+   if(f===hero)spots.frond=cv.getPointAt(0.62).add(V(0,0.2,0));
+  }
+  const pgeo=new THREE.SphereGeometry(1,14,8);pgeo.scale(0.5,0.025,0.2);pgeo.translate(0.5,0,0);
+  const pm=inst(pgeo,M(0xffffff,{roughness:0.7,side:THREE.DoubleSide}),pin.length);
+  const c=new THREE.Color();
+  pin.forEach((o,i)=>{
+   pm.setMatrixAt(i,o.m);
+   c.setHSL(0.31+r()*0.03,0.55,0.26+0.12*(1-Math.abs(o.u-0.5)*2)+r()*0.05);
+   pm.setColorAt(i,c);
+  });
+  pm.instanceColor.needsUpdate=true;g.add(pm);
+  const sm=inst(new THREE.SphereGeometry(0.04,8,6),M(0x7a4a24,{roughness:0.8}),sori.length);
+  const dm=new THREE.Object3D();
+  sori.forEach((p,i)=>{dm.position.copy(p);dm.updateMatrix();sm.setMatrixAt(i,dm.matrix);});
+  g.add(sm);
+  const fiddle=(x,z,yaw,s)=>{
+   const R=0.42,pts=[];
+   for(let i=0;i<=6;i++)pts.push(V(0,i/6,0));
+   for(let i=1;i<=64;i++){const ph=i/64*Math.PI*2.7,rr=R*(1-ph/(Math.PI*3.1));pts.push(V(-R+rr*Math.cos(ph),1+rr*Math.sin(ph),0));}
+   const cv=new THREE.CatmullRomCurve3(pts);
+   const fg=new THREE.Group();
+   fg.add(new THREE.Mesh(new THREE.TubeGeometry(cv,180,0.06,8,false),M(0x9ad65a,{roughness:0.55})));
+   fg.position.set(x,1.22,z);fg.rotation.y=yaw;fg.scale.setScalar(s);
+   g.add(fg);return fg;
+  };
+  const fa=fiddle(0,0,0.78,1.0);
+  fiddle(0.2,-0.22,2.2,0.62);
+  g.updateMatrixWorld(true);
+  spots.fiddle=fa.localToWorld(V(-0.3,1.12,0));
+  spots.rhizome=V(0.7,1.27,0.1);
+  spots.root=rootCurve.getPoint(0.5);
+  shade(g);
+  return{id:"ptero",group:g,spots:spots,center:1.5,home:{pos:V(6.4,4.6,6.6),target:V(0,1.5,0)}};
+ }
+
+ function buildPine(){
+  const g=new THREE.Group(),r=rng(53),spots={};
+  const tgeo=new THREE.CylinderGeometry(0.2,0.42,5.0,12,16,false);
+  const tp=tgeo.attributes.position;
+  for(let i=0;i<tp.count;i++){const x=tp.getX(i),y=tp.getY(i),z=tp.getZ(i),a=Math.atan2(z,x),k=1+0.07*Math.sin(a*6+y*2.3)+0.04*Math.sin(a*11-y*5);tp.setX(i,x*k);tp.setZ(i,z*k);}
+  tgeo.computeVertexNormals();
+  const trunk=new THREE.Mesh(tgeo,M(0x6a4528,{roughness:0.97,flatShading:true}));
+  trunk.position.y=2.5;g.add(trunk);
+  const flare=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.62,0.36,12),M(0x5d3c22,{roughness:0.97,flatShading:true}));
+  flare.position.y=0.18;g.add(flare);
+  const branches=[];
+  for(let k=0;k<7;k++){
+   const y=1.5+k*0.52,L=2.05-0.27*k;
+   for(let j=0;j<5;j++){
+    const ang=k*0.62+j*Math.PI*2/5+(r()-0.5)*0.25;
+    branches.push({k:k,j:j,ang:ang,s:V(Math.cos(ang)*0.15,y,Math.sin(ang)*0.15),e:V(Math.cos(ang)*L,y-0.18*L+0.05,Math.sin(ang)*L)});
+   }
+  }
+  const limbMat=M(0x5d3c22,{roughness:0.95});
+  const limb=(a,b,r0,r1)=>{
+   const dv=b.clone().sub(a),len=dv.length();
+   const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r0,len,7),limbMat);
+   m.position.copy(a).add(b).multiplyScalar(0.5);
+   m.quaternion.setFromUnitVectors(V(0,1,0),dv.normalize());
+   g.add(m);
+  };
+  const nd=[],nm=new THREE.Object3D();
+  const needles=(cen,out,sc)=>{
+   for(let i=0;i<22;i++){
+    const dv=out.clone().multiplyScalar(0.9).add(V((r()-0.5)*1.5,(r()-0.2)*0.8,(r()-0.5)*1.5)).normalize();
+    const len=(0.55+r()*0.35)*sc;
+    nm.position.copy(cen).addScaledVector(dv,len/2);
+    nm.quaternion.setFromUnitVectors(V(0,1,0),dv);
+    nm.scale.set(1,len,1);nm.updateMatrix();nd.push(nm.matrix.clone());
+   }
+  };
+  branches.forEach(b=>{
+   limb(b.s,b.e,0.07*(1-b.k*0.09),0.03);
+   const out=b.e.clone().sub(b.s).normalize(),sc=1-0.05*b.k;
+   [0.4,0.62,0.82,1.0].forEach(t=>needles(b.s.clone().lerp(b.e,t),out,sc));
+  });
+  needles(V(0,4.98,0),V(0,1,0),0.9);needles(V(0,4.8,0),V(0.3,1,0.2).normalize(),0.9);needles(V(0,4.8,0),V(-0.3,1,-0.2).normalize(),0.9);
+  const ngeo=new THREE.CylinderGeometry(0.011,0.006,1,4);
+  const nmesh=inst(ngeo,M(0xffffff,{roughness:0.6}),nd.length);
+  const c=new THREE.Color();
+  nd.forEach((m,i)=>{nmesh.setMatrixAt(i,m);c.setHSL(0.32+r()*0.04,0.45,0.2+r()*0.17);nmesh.setColorAt(i,c);});
+  nmesh.instanceColor.needsUpdate=true;g.add(nmesh);
+  const mkCone=(len,rad)=>{
+   const cg=new THREE.Group();
+   const core=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),M(0x2e1b0e,{roughness:0.9}));
+   core.scale.set(rad*0.78,len*0.52,rad*0.78);core.position.y=len*0.5;cg.add(core);
+   const N=170,im=inst(new THREE.BoxGeometry(0.16,0.13,0.05),M(0xffffff,{roughness:0.75}),N);
+   const d=new THREE.Object3D(),col=new THREE.Color();
+   for(let i=0;i<N;i++){
+    const t=(i+0.5)/N,ang=i*2.39996,pr=Math.sin(Math.PI*(0.1+0.82*t)),rr=rad*pr*0.92,y=t*len;
+    d.position.set(Math.cos(ang)*rr,y,Math.sin(ang)*rr);
+    d.lookAt(Math.cos(ang)*(rr+1),y+0.55,Math.sin(ang)*(rr+1));
+    const sc=(0.55+0.9*pr)*(rad/0.34);
+    d.scale.set(sc,sc,1);d.updateMatrix();im.setMatrixAt(i,d.matrix);
+    col.setHSL(0.07+0.01*r(),0.5,0.22+0.14*t+0.05*r());im.setColorAt(i,col);
+   }
+   im.instanceColor.needsUpdate=true;cg.add(im);return cg;
+  };
+  const near=(k,t)=>branches.filter(b=>b.k===k).sort((a,b)=>angDiff(a.ang,t)-angDiff(b.ang,t))[0];
+  const fb=near(2,0.8),fb2=near(3,0.15),mb=near(4,1.4),nb=near(5,0.7);
+  const c1=mkCone(0.95,0.34);c1.position.copy(fb.e).add(V(0,-0.05,0));c1.rotation.set(0.1,0.6,Math.PI);g.add(c1);
+  const c2=mkCone(0.8,0.3);c2.position.copy(fb2.e).add(V(0,-0.05,0));c2.rotation.set(-0.1,2.0,Math.PI);g.add(c2);
+  const male=new THREE.Group();male.position.copy(mb.e);
+  for(let i=0;i<16;i++){
+   const m=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),M(0xe6bf4a,{roughness:0.7,emissive:0x3a2a05}));
+   m.scale.set(0.07,0.2,0.07);
+   m.position.set((r()-0.5)*0.36,(r()-0.5)*0.3,(r()-0.5)*0.36);
+   m.rotation.set((r()-0.5)*1.6,r()*6.28,(r()-0.5)*1.6);
+   male.add(m);
+  }
+  g.add(male);
+  const mkSeed=()=>{
+   const s=new THREE.Group();
+   const b=new THREE.Mesh(new THREE.SphereGeometry(1,12,10),M(0x3b2616,{roughness:0.5}));b.scale.set(0.07,0.1,0.06);s.add(b);
+   const w=new THREE.Mesh(new THREE.SphereGeometry(1,16,8),M(0xd8b684,{roughness:0.6}));w.scale.set(0.1,0.32,0.012);w.position.y=0.3;s.add(w);
+   return s;
+  };
+  [[2.2,2.5],[2.65,1.95],[1.8,2.95]].forEach((p,i)=>{
+   const s=mkSeed();s.scale.setScalar(1.6);s.position.set(p[0],0.1,p[1]);s.rotation.set(-Math.PI/2,0,i*2.1+0.5);g.add(s);
+  });
+  limb(V(0,4.55,0),V(0,5.0,0),0.05,0.02);
+  g.updateMatrixWorld(true);
+  spots.female=V(fb.e.x,fb.e.y-0.55,fb.e.z);
+  spots.male=male.position.clone();
+  spots.needle=nb.e.clone().add(V(0,0.15,0));
+  spots.trunk=V(Math.cos(0.8)*0.42,1.0,Math.sin(0.8)*0.42);
+  spots.seed=V(2.2,0.35,2.5);
+  shade(g);
+  return{id:"gymno",group:g,spots:spots,center:2.4,home:{pos:V(7.4,4.2,7.8),target:V(0,2.4,0)}};
+ }
+
+ function buildFlower(){
+  const g=new THREE.Group(),spots={};
+  const clip=new THREE.Plane(new THREE.Vector3(0,0,-1),0);
+  const petalGeo=(w,l,curl,c0,c1)=>{
+   const geo=new THREE.SphereGeometry(1,28,20),p=geo.attributes.position,cols=[],a=new THREE.Color(c0),b=new THREE.Color(c1),c=new THREE.Color();
+   for(let i=0;i<p.count;i++){
+    const u=(p.getY(i)+1)/2;
+    p.setXYZ(i,p.getX(i)*w,u*2*l,p.getZ(i)*0.045+curl*u*u*l);
+    c.copy(a).lerp(b,Math.min(1,u*1.15));cols.push(c.r,c.g,c.b);
+   }
+   geo.setAttribute("color",new THREE.Float32BufferAttribute(cols,3));
+   geo.computeVertexNormals();return geo;
+  };
+  const place=(geo,mat,ang,tilt,y,rad)=>{
+   const piv=new THREE.Group();
+   piv.position.set(Math.sin(ang)*rad,y,Math.cos(ang)*rad);piv.rotation.y=ang;
+   const m=new THREE.Mesh(geo,mat);m.rotation.x=tilt;piv.add(m);g.add(piv);return m;
+  };
+  const stemCurve=new THREE.CatmullRomCurve3([V(0,0,0),V(0.06,0.9,0.04),V(-0.04,1.8,-0.02),V(0,2.66,0)]);
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(stemCurve,36,0.085,10,false),M(0x3a8a3c,{roughness:0.6})));
+  const leafMat=M(0xffffff,{vertexColors:true,side:THREE.DoubleSide,roughness:0.55});
+  place(petalGeo(0.55,0.95,0.25,0x1b5e20,0x66bb6a),leafMat,2.4,1.15,0.9,0.1);
+  place(petalGeo(0.45,0.85,0.22,0x1b5e20,0x7cb342),leafMat,-0.9,1.0,1.65,0.08);
+  const rec=new THREE.Mesh(new THREE.SphereGeometry(1,24,16),M(0x3f8f3a,{roughness:0.6}));
+  rec.scale.set(0.34,0.2,0.34);rec.position.y=2.66;g.add(rec);
+  const sepalMat=M(0xffffff,{vertexColors:true,side:THREE.DoubleSide,roughness:0.55});
+  const sepals=[];
+  [108,180,252].forEach(deg=>{sepals.push(place(petalGeo(0.2,0.5,0.15,0x2e7d32,0x8bc34a),sepalMat,deg*Math.PI/180,0.95,2.62,0.18));});
+  const petalMat=M(0xffffff,{vertexColors:true,side:THREE.DoubleSide,roughness:0.5,emissive:0x2a0a18});
+  const petals=[];
+  [90,150,210,270].forEach((deg,i)=>{petals.push(place(petalGeo(0.46,0.92,0.38,0xffe0b0,0xf0529c),petalMat,deg*Math.PI/180,0.5+0.06*(i%2),2.72,0.14));});
+  const stam=[];
+  for(let i=2;i<=6;i++){
+   const ang=i*Math.PI/4,h=1.25+0.12*(i%3);
+   const piv=new THREE.Group();
+   piv.position.set(Math.sin(ang)*0.2,2.78,Math.cos(ang)*0.2);piv.rotation.y=ang;
+   const inner=new THREE.Group();inner.rotation.x=0.14+0.04*(i%2);piv.add(inner);
+   const fil=new THREE.Mesh(new THREE.CylinderGeometry(0.014,0.022,h,8),M(0xf3ead0,{roughness:0.5}));
+   fil.position.y=h/2;inner.add(fil);
+   const an=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),M(0xf2a81d,{roughness:0.55,emissive:0x5a3400}));
+   an.scale.set(0.065,0.17,0.065);an.position.y=h+0.05;inner.add(an);
+   g.add(piv);stam.push(an);
+  }
+  const oGeo=new THREE.SphereGeometry(1,40,28);
+  const oOut=new THREE.Mesh(oGeo,M(0x86c64e,{roughness:0.45,clippingPlanes:[clip],clipShadows:true,side:THREE.FrontSide}));
+  const oIn=new THREE.Mesh(oGeo,M(0xe3f3b0,{roughness:0.8,clippingPlanes:[clip],clipShadows:true,side:THREE.BackSide,emissive:0x44541c}));
+  [oOut,oIn].forEach(m=>{m.scale.set(0.44,0.52,0.44);m.position.y=2.98;g.add(m);});
+  [[0.16,0.05,-0.06],[-0.16,0.08,-0.04],[0,-0.18,0.03],[0.02,0.2,-0.05],[0.2,-0.12,-0.12],[-0.2,-0.1,-0.1]].forEach(o=>{
+   const ov=new THREE.Mesh(new THREE.SphereGeometry(0.065,14,10),M(0xfff4c0,{roughness:0.4,emissive:0x6b5a1c}));
+   ov.position.set(o[0],2.98+o[1],o[2]);g.add(ov);
+  });
+  const style=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.05,0.95,10),M(0x9ad65a,{roughness:0.5}));
+  style.position.y=3.92;g.add(style);
+  const stigma=new THREE.Mesh(new THREE.SphereGeometry(1,20,14),M(0xff8a3d,{roughness:0.5,emissive:0x5a1f00}));
+  stigma.scale.set(0.15,0.12,0.15);stigma.position.y=4.46;g.add(stigma);
+  for(let i=0;i<12;i++){
+   const a=i/12*Math.PI*2,pa=new THREE.Mesh(new THREE.SphereGeometry(0.035,8,6),M(0xffb066,{roughness:0.5,emissive:0x5a2a00}));
+   pa.position.set(Math.cos(a)*0.13,4.46+((i%3)-1)*0.04,Math.sin(a)*0.13);g.add(pa);
+  }
+  g.updateMatrixWorld(true);
+  spots.petal=petals[0].localToWorld(V(0,0.95,0.25));
+  spots.sepal=sepals[0].localToWorld(V(0,0.5,0.06));
+  spots.stamen=stam[0].getWorldPosition(V(0,0,0));
+  spots.stigma=V(0,4.46,0);
+  spots.ovary=V(0,2.98,0.12);
+  shade(g);
+  return{id:"angio",group:g,spots:spots,center:2.7,home:{pos:V(3.2,4.3,8.0),target:V(0,2.7,0)}};
+ }
+
+ const models={bryo:buildMoss(),ptero:buildFern(),gymno:buildPine(),angio:buildFlower()};
+ Object.keys(models).forEach(k=>{models[k].group.visible=false;models[k].group.scale.setScalar(0.001);scene.add(models[k].group);});
+
+ let cur=null,hs=[],tween=null,anims=[],activeHs=-1;
+ const accentTarget=new THREE.Color(0xf06aa4);
+ const a=V(0,0,0),b=V(0,0,0),ctr=V(0,0,0);
+
+ function flyTo(pos,target,dur){
+  tween={t0:performance.now(),dur:REDUCED?1:dur,p0:camera.position.clone(),tg0:controls.target.clone(),p1:pos.clone(),tg1:target.clone()};
+ }
+ function stepTween(now){
+  if(!tween)return;
+  const k=Math.min(1,(now-tween.t0)/tween.dur),e=ease(k);
+  camera.position.lerpVectors(tween.p0,tween.p1,e);
+  controls.target.lerpVectors(tween.tg0,tween.tg1,e);
+  if(k>=1)tween=null;
+ }
+ function addAnim(dur,fn,done){anims.push({t0:performance.now(),dur:REDUCED?1:dur,fn:fn,done:done});}
+ function stepAnims(now){
+  for(let i=anims.length-1;i>=0;i--){
+   const o=anims[i],k=Math.min(1,(now-o.t0)/o.dur);
+   o.fn(k);
+   if(k>=1){anims.splice(i,1);if(o.done)o.done();}
+  }
+ }
+ controls.addEventListener("start",()=>{
+  tween=null;
+  if(controls.autoRotate){controls.autoRotate=false;const bt=$("#btnRotate");if(bt)bt.setAttribute("aria-pressed","false");}
+ });
+
+ function mountSpots(m,d){
+  hsLayer.innerHTML="";hs=[];activeHs=-1;
+  d.hotspots.forEach((h,i)=>{
+   const el=document.createElement("button");
+   el.type="button";el.className="hs";el.setAttribute("aria-label",h.title);
+   el.innerHTML='<span class="hs-pulse"></span><span class="hs-core">'+(i+1)+'</span><span class="hs-tag">'+esc(h.title)+"</span>";
+   el.addEventListener("click",()=>openSpot(i));
+   hsLayer.appendChild(el);
+   hs.push({el:el,pos:m.spots[h.id],inner:!!h.inner});
+  });
+ }
+ function updateHotspots(){
+  if(!cur)return;
+  const w=host.clientWidth,h=host.clientHeight;
+  cur.group.updateMatrixWorld(true);
+  ctr.set(0,cur.center,0);cur.group.localToWorld(ctr);
+  hs.forEach(o=>{
+   a.copy(o.pos);cur.group.localToWorld(a);
+   b.copy(a);
+   a.project(camera);
+   const vis=a.z<1&&a.z>-1,x=(a.x*0.5+0.5)*w,y=(-a.y*0.5+0.5)*h;
+   o.el.style.transform="translate3d("+x.toFixed(1)+"px,"+y.toFixed(1)+"px,0)";
+   o.el.style.visibility=vis?"visible":"hidden";
+   o.el.classList.toggle("flip",x>w*0.68);
+   let back=false;
+   if(!o.inner){
+    const ox=b.x-ctr.x,oy=b.y-ctr.y,oz=b.z-ctr.z,vx=camera.position.x-b.x,vy=camera.position.y-b.y,vz=camera.position.z-b.z;
+    const ol=Math.sqrt(ox*ox+oy*oy+oz*oz)||1,vl=Math.sqrt(vx*vx+vy*vy+vz*vz)||1;
+    back=(ox*vx+oy*vy+oz*vz)/(ol*vl)<-0.2;
+   }
+   o.el.classList.toggle("back",back);
+  });
+ }
+ function setActiveHs(i){
+  activeHs=i;
+  hs.forEach((o,j)=>o.el.classList.toggle("active",j===i));
+ }
+
+ function show(id){
+  const next=models[id];if(!next)return;
+  const d=byId(id);
+  const prev=cur;
+  cur=next;
+  accentTarget.set(d.accent);
+  if(prev&&prev!==next){
+   const pg=prev.group;
+   addAnim(320,k=>{pg.scale.setScalar(Math.max(0.001,1-ease(k)));},()=>{pg.visible=false;});
+  }
+  const g=next.group;
+  g.visible=true;g.scale.setScalar(0.001);g.rotation.y=-0.6;
+  const delay=prev&&prev!==next?220:0;
+  setTimeout(()=>{
+   addAnim(800,k=>{const s=Math.max(0.001,easeBack(k));g.scale.setScalar(s);g.rotation.y=-0.6*(1-ease(k));});
+  },delay);
+  mountSpots(next,d);
+  flyTo(next.home.pos,next.home.target,1100);
+ }
+ function focusSpot(i){
+  if(!cur)return;
+  const d=byId(cur.id),h=d.hotspots[i];
+  setActiveHs(i);
+  if(controls.autoRotate){controls.autoRotate=false;const bt=$("#btnRotate");if(bt)bt.setAttribute("aria-pressed","false");}
+  const target=cur.spots[h.id].clone();
+  cur.group.updateMatrixWorld(true);
+  const dir=camera.position.clone().sub(controls.target).normalize();
+  const dist=h.inner?4.2:5.0;
+  flyTo(target.clone().addScaledVector(dir,dist),target,900);
+ }
+ function clearSpot(){setActiveHs(-1);}
+ function toggleRotate(){controls.autoRotate=!controls.autoRotate;return controls.autoRotate;}
+ function resetView(){if(cur)flyTo(cur.home.pos,cur.home.target,900);}
+
+ function resize(){
+  const w=host.clientWidth,h=host.clientHeight;
+  if(!w||!h)return;
+  renderer.setSize(w,h,false);
+  camera.aspect=w/h;
+  camera.fov=camera.aspect<0.9?54:40;
+  camera.updateProjectionMatrix();
+ }
+ if(window.ResizeObserver){new ResizeObserver(resize).observe(host);}
+ window.addEventListener("resize",resize);
+ resize();
+
+ let last=performance.now(),time=0;
+ const col=new THREE.Color();
+ function loop(now){
+  requestAnimationFrame(loop);
+  const dt=Math.min(0.05,(now-last)/1000);last=now;time+=dt;
+  stepTween(now);
+  stepAnims(now);
+  controls.update();
+  ringMat.color.lerp(accentTarget,0.08);
+  glowMat.color.lerp(accentTarget,0.08);
+  pmat.color.lerp(accentTarget,0.08);
+  if(!REDUCED){
+   for(let i=0;i<PN;i++){
+    pp[i*3+1]+=pv[i]*dt;
+    pp[i*3]+=Math.sin(time*0.6+i)*0.0025;
+    if(pp[i*3+1]>6.6)pp[i*3+1]=0.1;
+   }
+   pg.attributes.position.needsUpdate=true;
+  }
+  updateHotspots();
+  renderer.render(scene,camera);
+ }
+ requestAnimationFrame(loop);
+ return{show:show,focusSpot:focusSpot,clearSpot:clearSpot,toggleRotate:toggleRotate,resetView:resetView};
+}
+
+renderChips();
+renderCompare();
+renderKey();
+const loader=$("#loader"),fallback=$("#fallback");
+try{
+ if(typeof THREE==="undefined"||!THREE.OrbitControls)throw new Error("three.js not loaded");
+ three=init3D();
+ setTimeout(()=>loader.classList.add("done"),350);
+ setTimeout(()=>{loader.hidden=true;},1100);
+}catch(err){
+ three=null;
+ loader.hidden=true;
+ fallback.hidden=false;
+ $$(".tools,.stage-hint").forEach(el=>el.style.display="none");
+}
+select("angio");
+})();
+</script>
+</body>
+</html>
